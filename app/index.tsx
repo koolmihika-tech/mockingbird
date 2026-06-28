@@ -4,14 +4,18 @@ import {
   ActivityIndicator,
   Animated,
   Dimensions,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
-import { useSpotifyAuth } from "../context/SpotifyAuth";
+import { useSupabaseAuth } from "../context/SupabaseAuth";
 import { SONGS } from "../data/songs";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -130,8 +134,26 @@ function Drawer({ visible, onClose, router }: { visible: boolean; onClose: () =>
 
 export default function Home() {
   const router = useRouter();
-  const { token, login, logout, isLoading } = useSpotifyAuth();
+  const { user, login, signup, logout, isLoading, error: authError } = useSupabaseAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"login" | "signup" | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  function openModal(mode: "login" | "signup") {
+    setEmail("");
+    setPassword("");
+    setModalMode(mode);
+  }
+
+  async function handleSubmit() {
+    if (modalMode === "login") {
+      await login(email, password);
+    } else {
+      await signup(email, password);
+    }
+    if (!authError) setModalMode(null);
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -147,14 +169,19 @@ export default function Home() {
         </View>
         {isLoading ? (
           <ActivityIndicator color="#5C3D2E" />
-        ) : token ? (
+        ) : user ? (
           <Pressable style={styles.loginBtn} onPress={logout}>
             <Text style={styles.loginText}>Log out</Text>
           </Pressable>
         ) : (
-          <Pressable style={styles.loginBtn} onPress={login}>
-            <Text style={styles.loginText}>Log in</Text>
-          </Pressable>
+          <View style={styles.authBtns}>
+            <Pressable style={styles.loginBtn} onPress={() => openModal("signup")}>
+              <Text style={styles.loginText}>Sign up</Text>
+            </Pressable>
+            <Pressable style={styles.loginBtn} onPress={() => openModal("login")}>
+              <Text style={styles.loginText}>Log in</Text>
+            </Pressable>
+          </View>
         )}
       </View>
 
@@ -216,6 +243,41 @@ export default function Home() {
 
       {/* Drawer (rendered last so it floats above everything) */}
       <Drawer visible={drawerOpen} onClose={() => setDrawerOpen(false)} router={router} />
+
+      {/* Login / Sign up modal */}
+      <Modal visible={modalMode !== null} transparent animationType="fade" onRequestClose={() => setModalMode(null)}>
+        <KeyboardAvoidingView style={styles.modalBackdrop} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>{modalMode === "signup" ? "Sign up" : "Log in"}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor="#8B6347"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="#8B6347"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+            {authError && <Text style={styles.modalError}>{authError}</Text>}
+            <Pressable style={styles.modalBtn} onPress={handleSubmit} disabled={isLoading}>
+              {isLoading
+                ? <ActivityIndicator color="#5C3D2E" />
+                : <Text style={styles.modalBtnText}>{modalMode === "signup" ? "Sign up" : "Log in"}</Text>}
+            </Pressable>
+            <Pressable onPress={() => setModalMode(null)}>
+              <Text style={styles.modalCancel}>Cancel</Text>
+            </Pressable>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -254,6 +316,10 @@ const styles = StyleSheet.create({
     fontFamily: "Courier New",
     color: "#5C3D2E",
     fontWeight: "bold",
+  },
+  authBtns: {
+    flexDirection: "row",
+    gap: 8,
   },
   loginBtn: {
     backgroundColor: "#E8C5A0",
@@ -361,6 +427,61 @@ const styles = StyleSheet.create({
     fontFamily: "Courier New",
     fontSize: 13,
     color: "#5C3D2E",
+  },
+  // Modal
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalBox: {
+    width: "82%",
+    backgroundColor: "#FDF6EC",
+    borderRadius: 20,
+    padding: 28,
+    gap: 14,
+  },
+  modalTitle: {
+    fontFamily: "Courier New",
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#5C3D2E",
+    marginBottom: 4,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#E8D5C0",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    fontFamily: "Courier New",
+    fontSize: 14,
+    color: "#5C3D2E",
+    backgroundColor: "#FFF8F0",
+  },
+  modalError: {
+    fontFamily: "Courier New",
+    fontSize: 12,
+    color: "#B94A48",
+  },
+  modalBtn: {
+    backgroundColor: "#E8C5A0",
+    borderRadius: 20,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  modalBtnText: {
+    fontFamily: "Courier New",
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#5C3D2E",
+  },
+  modalCancel: {
+    fontFamily: "Courier New",
+    fontSize: 13,
+    color: "#8B6347",
+    textAlign: "center",
   },
   // Drawer
   backdrop: {

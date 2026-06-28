@@ -1,10 +1,10 @@
 import { Stack } from "expo-router";
-import { SpotifyAuthProvider } from "../context/SpotifyAuth";
+import { SupabaseAuthProvider } from "../context/SupabaseAuth";
 
 export default function RootLayout() {
   return (
-    <SpotifyAuthProvider>
+    <SupabaseAuthProvider>
       <Stack screenOptions={{ headerShown: false }} />
-    </SpotifyAuthProvider>
+    </SupabaseAuthProvider>
   );
 }
