@@ -11,130 +11,33 @@ import {
   Text,
   View,
 } from "react-native";
-import { WebView, WebViewMessageEvent } from "react-native-webview";
+import YoutubePlayer from "react-native-youtube-iframe";
 import { getLyrics } from "../../api/lrclib";
 import { SONGS } from "../../data/songs";
 import vocab from "../../data/vocabulary.json";
 
 // ─── YouTube player ──────────────────────────────────────────────────────────
 
-type VideoStatus = "loading" | "playing" | "retrying" | "fallback";
-
-function buildYouTubeHtml(query: string): string {
-  const safe = query.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
-  return `
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body { width: 100%; height: 100%; background: #000; }
-      #player { width: 100%; height: 100%; }
-    </style>
-  </head>
-  <body>
-    <div id="player"></div>
-    <script>
-      function post(msg) {
-        if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(msg));
-      }
-
-      var tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      document.head.appendChild(tag);
-
-      function onYouTubeIframeAPIReady() {
-        new YT.Player('player', {
-          playerVars: {
-            listType: 'search',
-            list: '${safe}',
-            autoplay: 1,
-            playsinline: 1,
-            rel: 0,
-            modestbranding: 1
-          },
-          events: {
-            onReady: function(e) {
-              e.target.playVideo();
-              post({ type: 'ready' });
-            },
-            onStateChange: function(e) {
-              post({ type: 'state', state: e.data });
-            },
-            onError: function(e) {
-              // error codes: 2=bad param, 5=html5 error, 100=not found/private,
-              // 101=embed blocked, 150=embed blocked (same restriction, different check)
-              post({ type: 'error', code: e.data });
-            }
-          }
-        });
-      }
-    </script>
-  </body>
-</html>
-`.trim();
-}
-
 interface VideoPlayerProps {
-  queries: string[];
+  videoIds: string[];
   songName: string;
 }
 
-function VideoPlayer({ queries, songName }: VideoPlayerProps) {
-  const [queryIndex, setQueryIndex] = useState(0);
-  const [status, setStatus] = useState<VideoStatus>("loading");
-  const [statusMsg, setStatusMsg] = useState("");
-  const loadingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+function VideoPlayer({ videoIds, songName }: VideoPlayerProps) {
+  const [idIndex, setIdIndex] = useState(0);
+  const [playing, setPlaying] = useState(true);
 
-  const currentQuery = queries[queryIndex];
-  const allFailed = queryIndex >= queries.length;
+  const currentId = videoIds[idIndex];
+  const allFailed = idIndex >= videoIds.length;
 
-  // Reset when song changes
   useEffect(() => {
-    setQueryIndex(0);
-    setStatus("loading");
-    setStatusMsg("");
+    setIdIndex(0);
+    setPlaying(true);
   }, [songName]);
 
-  // Timeout: if no 'ready' or 'error' message arrives within 10 s, try next
-  useEffect(() => {
-    if (allFailed) return;
-    if (loadingTimer.current) clearTimeout(loadingTimer.current);
-    setStatus("loading");
-    loadingTimer.current = setTimeout(() => {
-      tryNext("Took too long to load");
-    }, 10000);
-    return () => { if (loadingTimer.current) clearTimeout(loadingTimer.current); };
-  }, [queryIndex, songName]);
-
-  const tryNext = useCallback((reason: string) => {
-    setQueryIndex((i) => {
-      const next = i + 1;
-      if (next >= queries.length) {
-        setStatus("fallback");
-        setStatusMsg("");
-      } else {
-        setStatus("retrying");
-        setStatusMsg(`Trying another version… (${reason})`);
-      }
-      return next;
-    });
-  }, [queries.length]);
-
-  const handleMessage = useCallback((event: WebViewMessageEvent) => {
-    try {
-      const msg = JSON.parse(event.nativeEvent.data);
-      if (msg.type === "ready") {
-        if (loadingTimer.current) clearTimeout(loadingTimer.current);
-        setStatus("playing");
-        setStatusMsg("");
-      } else if (msg.type === "error") {
-        if (loadingTimer.current) clearTimeout(loadingTimer.current);
-        tryNext(`error ${msg.code}`);
-      }
-    } catch {}
-  }, [tryNext]);
+  const tryNext = useCallback(() => {
+    setIdIndex((i) => i + 1);
+  }, []);
 
   const openOnYouTube = () => {
     const q = encodeURIComponent(`${songName} letra`);
@@ -158,28 +61,15 @@ function VideoPlayer({ queries, songName }: VideoPlayerProps) {
 
   return (
     <View style={styles.videoContainer}>
-      {/* Status overlay shown while loading or retrying */}
-      {(status === "loading" || status === "retrying") && (
-        <View style={styles.videoOverlay}>
-          <ActivityIndicator color="#FDF6EC" size="large" />
-          <Text style={styles.videoOverlayText}>
-            {status === "retrying" ? statusMsg : "Loading video…"}
-          </Text>
-        </View>
-      )}
-      <WebView
-        key={`${songName}-${queryIndex}`}
-        style={styles.webview}
-        source={{
-          html: buildYouTubeHtml(currentQuery),
-          baseUrl: "https://www.youtube.com",
+      <YoutubePlayer
+        key={`${songName}-${idIndex}`}
+        height={210}
+        videoId={currentId}
+        play={playing}
+        onChangeState={(state) => {
+          if (state === "ended") setPlaying(false);
         }}
-        originWhitelist={["*"]}
-        allowsInlineMediaPlayback
-        mediaPlaybackRequiresUserAction={false}
-        javaScriptEnabled
-        scrollEnabled={false}
-        onMessage={handleMessage}
+        onError={tryNext}
       />
     </View>
   );
@@ -290,7 +180,7 @@ export default function SongPlayerScreen() {
         <Text style={styles.songArtist}>{song.artist}</Text>
 
         {/* Video player with automatic fallback */}
-        <VideoPlayer queries={song.videoQueries} songName={song.name} />
+        <VideoPlayer videoIds={song.videoIds} songName={song.name} />
 
         {/* Lyrics */}
         <View style={styles.lyricsSection}>

@@ -9,56 +9,10 @@ import {
   Text,
   View,
 } from "react-native";
-import { WebView } from "react-native-webview";
+import YoutubePlayer from "react-native-youtube-iframe";
 import { getLyrics } from "../api/lrclib";
 import { SONGS as PLACEHOLDER_SONGS, type Song } from "../data/songs";
 
-/** Builds a self-contained HTML page that boots the YouTube IFrame Player API
- *  using listType:"search" so YouTube finds an embeddable video automatically —
- *  no hardcoded video IDs that can go private or have embedding disabled.
- *  source={{ html, baseUrl }} is required for Expo Go: bare embed URIs are
- *  blocked by YouTube's origin checks inside WebView. */
-function buildYouTubeHtml(query: string): string {
-  const safe = query.replace(/'/g, "\\'");
-  return `
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body { width: 100%; height: 100%; background: #000; }
-      #player { width: 100%; height: 100%; }
-    </style>
-  </head>
-  <body>
-    <div id="player"></div>
-    <script>
-      var tag = document.createElement('script');
-      tag.src = "https://www.youtube.com/iframe_api";
-      var firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-      function onYouTubeIframeAPIReady() {
-        new YT.Player('player', {
-          playerVars: {
-            listType: 'search',
-            list: '${safe}',
-            autoplay: 1,
-            playsinline: 1,
-            rel: 0,
-            modestbranding: 1
-          },
-          events: {
-            onReady: function(e) { e.target.playVideo(); }
-          }
-        });
-      }
-    </script>
-  </body>
-</html>
-`.trim();
-}
 
 export default function SongsScreen() {
   const router = useRouter();
@@ -126,19 +80,10 @@ export default function SongsScreen() {
             </Text>
 
             <View style={styles.videoContainer}>
-              {/* source={{ html }} is required for Expo Go — bare embed URIs
-                  are blocked by YouTube's origin checks inside WebView.
-                  The IFrame Player API script (youtube.com/iframe_api) is
-                  loaded dynamically inside the HTML and initialises YT.Player,
-                  which is the current supported embed method. */}
-              <WebView
-                style={styles.webview}
-                source={{ html: buildYouTubeHtml(`${activeSong.name} ${activeSong.artist}`), baseUrl: "https://www.youtube.com" }}
-                originWhitelist={["*"]}
-                allowsInlineMediaPlayback
-                mediaPlaybackRequiresUserAction={false}
-                javaScriptEnabled
-                scrollEnabled={false}
+              <YoutubePlayer
+                height={210}
+                videoId={activeSong.videoIds[0]}
+                play
               />
             </View>
 
@@ -238,9 +183,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: "hidden",
     backgroundColor: "#000",
-  },
-  webview: {
-    flex: 1,
   },
   lyricsSection: {
     marginTop: 20,
