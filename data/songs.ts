@@ -35,7 +35,7 @@ export const SONGS: Song[] = [
       "me gustas tu mano chao karaoke",
       "me gustas tu mano chao cover",
     ],
-    videoIds: ["YXnjy5YlDwk"],
+    videoIds: ["rs6Y4kZ8qtw"],
   },
   {
     id: "3",
@@ -49,7 +49,7 @@ export const SONGS: Song[] = [
       "limon y sal julieta venegas karaoke",
       "limon y sal julieta venegas cover",
     ],
-    videoIds: ["YXnjy5YlDwk"],
+    videoIds: ["tIpzfs5tBJU"],
   },
   {
     id: "4",
@@ -63,7 +63,7 @@ export const SONGS: Song[] = [
       "mejor que ayer diego torres karaoke",
       "mejor que ayer diego torres cover",
     ],
-    videoIds: ["YXnjy5YlDwk"],
+    videoIds: ["9YfFaCxZnpM"],
   },
   {
     id: "5",
@@ -77,7 +77,7 @@ export const SONGS: Song[] = [
       "robarte un beso karaoke",
       "robarte un beso cover",
     ],
-    videoIds: ["YXnjy5YlDwk"],
+    videoIds: ["Mtau4v6foHA"],
   },
   {
     id: "6",
@@ -91,7 +91,7 @@ export const SONGS: Song[] = [
       "la libertad alvaro soler karaoke",
       "la libertad alvaro soler cover",
     ],
-    videoIds: ["YXnjy5YlDwk"],
+    videoIds: ["okAqaED2w4g"],
   },
   {
     id: "7",
@@ -105,7 +105,7 @@ export const SONGS: Song[] = [
       "fin de semana sam vasquez karaoke",
       "fin de semana cover español",
     ],
-    videoIds: ["YXnjy5YlDwk"],
+    videoIds: ["zqstVKeQrH4"],
   },
   {
     id: "8",
@@ -119,7 +119,7 @@ export const SONGS: Song[] = [
       "despacito luis fonsi lyric video",
       "despacito karaoke",
     ],
-    videoIds: ["YXnjy5YlDwk"],
+    videoIds: ["kJQP7kiw5Fk"],
   },
   {
     id: "9",
@@ -133,7 +133,7 @@ export const SONGS: Song[] = [
       "bailando enrique iglesias lyric video",
       "bailando karaoke español",
     ],
-    videoIds: ["YXnjy5YlDwk"],
+    videoIds: ["b8I-7Wk_Vbc"],
   },
   {
     id: "10",
@@ -147,6 +147,6 @@ export const SONGS: Song[] = [
       "la bicicleta lyric video",
       "la bicicleta karaoke",
     ],
-    videoIds: ["YXnjy5YlDwk"],
+    videoIds: ["-UV0QGLmYys"],
   },
 ];
