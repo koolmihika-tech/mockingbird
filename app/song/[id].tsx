@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Animated,
   Linking,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -11,8 +12,8 @@ import {
   Text,
   View,
 } from "react-native";
-import YoutubePlayer from "react-native-youtube-iframe";
-import { getLyrics } from "../../api/lrclib";
+import YoutubePlayer, { YoutubeIframeRef } from "react-native-youtube-iframe";
+import { getLyrics, parseSyncedLyrics } from "../../api/lrclib";
 import { SONGS } from "../../data/songs";
 import vocab from "../../data/vocabulary.json";
 
@@ -21,23 +22,23 @@ import vocab from "../../data/vocabulary.json";
 interface VideoPlayerProps {
   videoIds: string[];
   songName: string;
+  playerRef: React.RefObject<YoutubeIframeRef>;
+  playing: boolean;
+  onPlayingChange: (p: boolean) => void;
 }
 
-function VideoPlayer({ videoIds, songName }: VideoPlayerProps) {
+function VideoPlayer({ videoIds, songName, playerRef, playing, onPlayingChange }: VideoPlayerProps) {
   const [idIndex, setIdIndex] = useState(0);
-  const [playing, setPlaying] = useState(true);
 
   const currentId = videoIds[idIndex];
   const allFailed = idIndex >= videoIds.length;
 
   useEffect(() => {
     setIdIndex(0);
-    setPlaying(true);
+    onPlayingChange(true);
   }, [songName]);
 
-  const tryNext = useCallback(() => {
-    setIdIndex((i) => i + 1);
-  }, []);
+  const tryNext = useCallback(() => setIdIndex((i) => i + 1), []);
 
   const openOnYouTube = () => {
     const q = encodeURIComponent(`${songName} letra`);
@@ -62,16 +63,60 @@ function VideoPlayer({ videoIds, songName }: VideoPlayerProps) {
   return (
     <View style={styles.videoContainer}>
       <YoutubePlayer
+        ref={playerRef}
         key={`${songName}-${idIndex}`}
         height={210}
         videoId={currentId}
         play={playing}
         onChangeState={(state) => {
-          if (state === "ended") setPlaying(false);
+          if (state === "playing") onPlayingChange(true);
+          if (state === "paused" || state === "ended") onPlayingChange(false);
         }}
         onError={tryNext}
       />
     </View>
+  );
+}
+
+// ─── Synced lyrics ────────────────────────────────────────────────────────────
+
+interface SyncedLyricsProps {
+  lines: { time: number; text: string }[];
+  activeLine: number;
+  onLinePress: (time: number) => void;
+}
+
+function SyncedLyricsView({ lines, activeLine, onLinePress }: SyncedLyricsProps) {
+  const scrollRef = useRef<ScrollView>(null);
+  const lineOffsetsRef = useRef<number[]>([]);
+
+  useEffect(() => {
+    const y = lineOffsetsRef.current[activeLine];
+    if (y != null) {
+      scrollRef.current?.scrollTo({ y: Math.max(0, y - 120), animated: true });
+    }
+  }, [activeLine]);
+
+  return (
+    <ScrollView
+      ref={scrollRef}
+      style={styles.syncedScroll}
+      nestedScrollEnabled
+      showsVerticalScrollIndicator={false}
+    >
+      {lines.map((line, i) => (
+        <Pressable
+          key={i}
+          onLayout={(e) => { lineOffsetsRef.current[i] = e.nativeEvent.layout.y; }}
+          onPress={() => onLinePress(line.time)}
+          style={styles.lyricLineWrapper}
+        >
+          <Text style={[styles.lyricLine, i === activeLine && styles.lyricLineActive]}>
+            {line.text || " "}
+          </Text>
+        </Pressable>
+      ))}
+    </ScrollView>
   );
 }
 
@@ -138,19 +183,55 @@ export default function SongPlayerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const song = SONGS.find((s) => s.id === id);
 
-  const [lyrics, setLyrics] = useState<string | null>(null);
+  const playerRef = useRef<YoutubeIframeRef>(null);
+  const [playing, setPlaying] = useState(true);
+
+  const [syncedLines, setSyncedLines] = useState<{ time: number; text: string }[] | null>(null);
+  const [plainLyrics, setPlainLyrics] = useState<string | null>(null);
   const [loadingLyrics, setLoadingLyrics] = useState(true);
   const [lyricsError, setLyricsError] = useState<string | null>(null);
+  const [activeLine, setActiveLine] = useState(0);
 
   useEffect(() => {
     if (!song) return;
     setLoadingLyrics(true);
     setLyricsError(null);
+    setSyncedLines(null);
+    setPlainLyrics(null);
+    setActiveLine(0);
     getLyrics(song.name, song.artist)
-      .then((result) => setLyrics(result?.plainLyrics ?? "Lyrics not found for this track."))
+      .then((result) => {
+        if (result?.syncedLyrics) {
+          setSyncedLines(parseSyncedLyrics(result.syncedLyrics));
+        } else {
+          setPlainLyrics(result?.plainLyrics ?? "Lyrics not found for this track.");
+        }
+      })
       .catch(() => setLyricsError("Could not load lyrics."))
       .finally(() => setLoadingLyrics(false));
   }, [song?.id]);
+
+  // Poll playback position every 500ms to drive lyric highlighting
+  useEffect(() => {
+    if (!syncedLines || syncedLines.length === 0) return;
+    const interval = setInterval(async () => {
+      if (Platform.OS === "web") return;
+      const time = await playerRef.current?.getCurrentTime();
+      if (time == null) return;
+      let idx = 0;
+      for (let i = 0; i < syncedLines.length; i++) {
+        if (syncedLines[i].time <= time) idx = i;
+        else break;
+      }
+      setActiveLine(idx);
+    }, 500);
+    return () => clearInterval(interval);
+  }, [syncedLines]);
+
+  const handleLyricPress = useCallback((time: number) => {
+    playerRef.current?.seekTo(time, true);
+    setPlaying(true);
+  }, []);
 
   if (!song) {
     return (
@@ -172,29 +253,37 @@ export default function SongPlayerScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Cover + title */}
         <View style={[styles.coverArt, { backgroundColor: song.coverColor }]}>
           <Text style={styles.coverNote}>♪</Text>
         </View>
         <Text style={styles.songName}>{song.name}</Text>
         <Text style={styles.songArtist}>{song.artist}</Text>
 
-        {/* Video player with automatic fallback */}
-        <VideoPlayer videoIds={song.videoIds} songName={song.name} />
+        <VideoPlayer
+          videoIds={song.videoIds}
+          songName={song.name}
+          playerRef={playerRef}
+          playing={playing}
+          onPlayingChange={setPlaying}
+        />
 
-        {/* Lyrics */}
         <View style={styles.lyricsSection}>
           <Text style={styles.sectionHeader}>Lyrics</Text>
           {loadingLyrics ? (
             <ActivityIndicator color="#5C3D2E" style={{ marginTop: 12 }} />
           ) : lyricsError ? (
             <Text style={styles.errorText}>{lyricsError}</Text>
+          ) : syncedLines ? (
+            <SyncedLyricsView
+              lines={syncedLines}
+              activeLine={activeLine}
+              onLinePress={handleLyricPress}
+            />
           ) : (
-            <Text style={styles.lyricsText}>{lyrics}</Text>
+            <Text style={styles.lyricsText}>{plainLyrics}</Text>
           )}
         </View>
 
-        {/* Flashcards */}
         {vocabEntries.length > 0 && (
           <FlashCardCarousel entries={vocabEntries} color={song.coverColor} />
         )}
@@ -225,14 +314,6 @@ const styles = StyleSheet.create({
     width: "100%", aspectRatio: 16 / 9, borderRadius: 12,
     overflow: "hidden", backgroundColor: "#000", marginBottom: 28,
   },
-  webview: { flex: 1 },
-  videoOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "#111",
-    alignItems: "center", justifyContent: "center",
-    gap: 12, zIndex: 10,
-  },
-  videoOverlayText: { fontFamily: "Courier New", fontSize: 13, color: "#ccc", textAlign: "center", paddingHorizontal: 20 },
 
   // Fallback
   fallbackBox: {
@@ -249,10 +330,16 @@ const styles = StyleSheet.create({
   youtubeBtnText: { fontFamily: "Courier New", fontSize: 14, color: "#5C3D2E", fontWeight: "600" },
 
   // Lyrics
-  lyricsSection: { width: "100%", marginBottom: 28 },
-  sectionHeader: { fontFamily: "Courier New", fontSize: 16, fontWeight: "bold", color: "#5C3D2E", marginBottom: 4 },
-  lyricsText:    { fontFamily: "Courier New", fontSize: 14, color: "#5C3D2E", lineHeight: 24 },
-  errorText:     { fontFamily: "Courier New", fontSize: 14, color: "#B94A48" },
+  lyricsSection:   { width: "100%", marginBottom: 28 },
+  sectionHeader:   { fontFamily: "Courier New", fontSize: 16, fontWeight: "bold", color: "#5C3D2E", marginBottom: 8 },
+  lyricsText:      { fontFamily: "Courier New", fontSize: 14, color: "#5C3D2E", lineHeight: 24 },
+  errorText:       { fontFamily: "Courier New", fontSize: 14, color: "#B94A48" },
+
+  // Synced lyrics
+  syncedScroll:      { height: 320 },
+  lyricLineWrapper:  { paddingVertical: 6, paddingHorizontal: 4 },
+  lyricLine:         { fontFamily: "Courier New", fontSize: 15, color: "#C4A882", lineHeight: 22 },
+  lyricLineActive:   { color: "#5C3D2E", fontSize: 17, fontWeight: "bold" },
 
   // Flashcards
   flashcardsSection: { width: "100%", marginBottom: 28 },
