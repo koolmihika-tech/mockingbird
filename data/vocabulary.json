@@ -20,7 +20,7 @@
     "alegrías": "joys",
     "tristezas": "sadness"
   },
-  "Me Gustas Tu": {
+  "Me Gustas Tú": {
     "me gustas": "I like",
     "tú": "you",
     "qué": "what",
@@ -35,7 +35,7 @@
     "sol": "sun",
     "vida": "life"
   },
-  "Limon y Sal": {
+  "Limón y Sal": {
     "limón": "lemon",
     "sal": "salt",
     "quiero": "I want / I love",
@@ -96,6 +96,55 @@
     "lejos": "far away",
     "juntos": "together",
     "fuerza": "strength / force"
+  },
+  "Despacito": {
+    "despacito": "slowly",
+    "quiero": "I want",
+    "respirar": "to breathe",
+    "cuello": "neck",
+    "vez": "time / turn",
+    "piel": "skin",
+    "bailar": "to dance",
+    "control": "control",
+    "corazón": "heart",
+    "amor": "love",
+    "playa": "beach",
+    "arena": "sand",
+    "cuerpo": "body",
+    "beso": "kiss",
+    "suave": "soft / smooth"
+  },
+  "Bailando": {
+    "bailando": "dancing",
+    "contigo": "with you",
+    "quiero": "I want",
+    "noche": "night",
+    "loco": "crazy",
+    "cuerpo": "body",
+    "piel": "skin",
+    "sentir": "to feel",
+    "ritmo": "rhythm",
+    "corazón": "heart",
+    "libre": "free",
+    "vida": "life",
+    "amor": "love",
+    "fuego": "fire"
+  },
+  "La Bicicleta": {
+    "bicicleta": "bicycle",
+    "playa": "beach",
+    "sol": "sun",
+    "montar": "to ride",
+    "vida": "life",
+    "ritmo": "rhythm",
+    "cumbia": "cumbia (music genre)",
+    "vallenato": "vallenato (music genre)",
+    "gente": "people",
+    "feliz": "happy",
+    "cantar": "to sing",
+    "bailar": "to dance",
+    "amor": "love",
+    "corazón": "heart"
   },
   "Fin de Semana": {
     "fin de semana": "weekend",
