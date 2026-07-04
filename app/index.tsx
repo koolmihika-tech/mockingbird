@@ -23,13 +23,12 @@ const DRAWER_WIDTH = SCREEN_WIDTH * 0.58;
 
 const SECTIONS = [
   { label: "Songs",     color: "#E8C5A0" },
-  { label: "Reading",   color: "#D4A9A9" },
-  { label: "Writing",   color: "#B5C9A8" },
-  { label: "Listening", color: "#A9BFD4" },
-  { label: "Speaking",  color: "#C9B8D4" },
+  { label: "Reading/Writing",   color: "#D4A9A9" },
+  { label: "Listening", color: "#B5C9A8" },
+  { label: "Speaking",  color: "#A9BFD4" },
 ];
 
-const PRACTICE_ITEMS = ["Reading", "Writing", "Listening", "Speaking"];
+const PRACTICE_ITEMS = ["Reading/Writing", "Listening", "Speaking"];
 
 function Drawer({ visible, onClose, router }: { visible: boolean; onClose: () => void; router: ReturnType<typeof useRouter> }) {
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
