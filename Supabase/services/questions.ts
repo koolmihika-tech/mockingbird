@@ -17,30 +17,30 @@ export async function generateQuestions(
   mode: "reading" | "writing",
   count = 5
 ): Promise<Question[]> {
-  console.log("[questions] invoking generate-questions with:", { songName, words, mode, count });
+  // console.log("[questions] invoking generate-questions with:", { songName, words, mode, count });
 
-  const { data: sessionData } = await supabase.auth.getSession();
-  console.log("[questions] current session present:", !!sessionData?.session);
+  // const { data: sessionData } = await supabase.auth.getSession();
+  // console.log("[questions] current session present:", !!sessionData?.session);
 
   const { data, error } = await supabase.functions.invoke("generate-questions", {
     body: { songName, words, mode, count },
   });
 
-  console.log("[questions] invoke returned, data:", data, "error:", error);
+  // console.log("[questions] invoke returned, data:", data, "error:", error);
 
   if (error) {
     if (error instanceof FunctionsHttpError) {
-      console.log("[questions] FunctionsHttpError, status:", error.context?.status);
+      // console.log("[questions] FunctionsHttpError, status:", error.context?.status);
       const body = await error.context.json().catch((parseErr: any) => {
-        console.error("[questions] failed to parse error body as JSON:", parseErr);
+        // console.error("[questions] failed to parse error body as JSON:", parseErr);
         return null;
       });
-      console.log("[questions] parsed error body:", body);
+      // console.log("[questions] parsed error body:", body);
       throw new Error(body?.error ?? error.message);
     }
-    console.error("[questions] non-HTTP error:", error);
+    // console.error("[questions] non-HTTP error:", error);
     throw error;
   }
-  console.log("[questions] success, question count:", data?.questions?.length);
+  // console.log("[questions] success, question count:", data?.questions?.length);
   return data.questions;
 }

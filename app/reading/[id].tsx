@@ -85,22 +85,22 @@ export default function ReadingWritingPracticeScreen() {
   const words = Object.keys((vocab as Record<string, Record<string, string>>)[song.name] ?? {});
 
   async function handleGenerate(nextMode: Mode) {
-    console.log("[reading] button pressed, mode:", nextMode);
+    // console.log("[reading] button pressed, mode:", nextMode);
     setMode(nextMode);
     setQuestions(null);
     setError(null);
     setLoading(true);
-    console.log("[reading] song:", song!.name, "words:", words);
+    // console.log("[reading] song:", song!.name, "words:", words);
     try {
-      console.log("[reading] calling generateQuestions...");
+      // console.log("[reading] calling generateQuestions...");
       const result = await generateQuestions(song!.name, words, nextMode);
-      console.log("[reading] generateQuestions succeeded, questions:", result);
+      // console.log("[reading] generateQuestions succeeded, questions:", result);
       setQuestions(result);
     } catch (e: any) {
-      console.error("[reading] generateQuestions threw:", e);
+      // console.error("[reading] generateQuestions threw:", e);
       setError(e.message ?? "Could not generate questions.");
     } finally {
-      console.log("[reading] done, loading=false");
+      // console.log("[reading] done, loading=false");
       setLoading(false);
     }
   }
