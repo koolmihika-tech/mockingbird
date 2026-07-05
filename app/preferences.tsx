@@ -3,15 +3,20 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useSupabaseAuth } from "../context/SupabaseAuth";
+import { updateDisplayName } from "../Supabase/services/authenticate";
 import { fetchGenres, type Genre } from "../Supabase/services/genres";
+import { fetchAvailableLevels, saveUserLevel, type Level } from "../Supabase/services/levels";
 import { saveUserPrefs } from "../Supabase/services/preferences";
 
 const NO_PREFERENCE = "no preference";
@@ -21,13 +26,19 @@ export default function PreferencesScreen() {
   const { user } = useSupabaseAuth();
   const [genres, setGenres] = useState<Genre[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [name, setName] = useState("");
+  const [levels, setLevels] = useState<Level[]>([]);
+  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchGenres()
-      .then(setGenres)
-      .catch(() => Alert.alert("Error", "Could not load genres."))
+    Promise.all([fetchGenres(), fetchAvailableLevels()])
+      .then(([genreData, levelData]) => {
+        setGenres(genreData);
+        setLevels(levelData);
+      })
+      .catch(() => Alert.alert("Error", "Could not load your options."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -53,15 +64,19 @@ export default function PreferencesScreen() {
     });
   }
 
+  const canContinue = name.trim().length > 0 && selected.size > 0 && selectedLevel !== null;
+
   async function handleContinue() {
-    if (!user || selected.size === 0) return;
+    if (!user || !canContinue || !selectedLevel) return;
 
     setSaving(true);
     try {
+      await updateDisplayName(name.trim());
       await saveUserPrefs(user.id, Array.from(selected));
+      await saveUserLevel(user.id, selectedLevel);
       router.replace("/");
     } catch {
-      Alert.alert("Error", "Could not save your preferences. Please try again.");
+      Alert.alert("Error", "Could not save your details. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -69,45 +84,91 @@ export default function PreferencesScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <Text style={styles.title}>What do you like to listen to?</Text>
-        <Text style={styles.subtitle}>Pick at least one genre to personalize your experience.</Text>
-      </View>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Welcome to Mockingbird</Text>
+            <Text style={styles.subtitle}>Let's set up your profile.</Text>
+          </View>
 
-      {loading ? (
-        <ActivityIndicator color="#5C3D2E" style={{ marginTop: 40 }} />
-      ) : (
-        <ScrollView contentContainerStyle={styles.grid}>
-          {genres.map((genre) => {
-            const isSelected = selected.has(genre.genre_id);
-            return (
-              <Pressable
-                key={genre.genre_id}
-                style={[styles.chip, isSelected && styles.chipSelected]}
-                onPress={() => toggleGenre(genre)}
-              >
-                <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                  {genre.genre_name}
-                </Text>
-              </Pressable>
-            );
-          })}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>What should we call you?</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Your name"
+              placeholderTextColor="#8B6347"
+              value={name}
+              onChangeText={setName}
+            />
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>What's your current level?</Text>
+            <Text style={styles.sectionSubtitle}>More levels are coming soon.</Text>
+
+            {loading ? (
+              <ActivityIndicator color="#5C3D2E" style={{ marginTop: 24 }} />
+            ) : (
+              <View style={styles.grid}>
+                {levels.map((level) => {
+                  const isSelected = selectedLevel === level.level_id;
+                  return (
+                    <Pressable
+                      key={level.level_id}
+                      style={[styles.chip, isSelected && styles.chipSelected]}
+                      onPress={() => setSelectedLevel(level.level_id)}
+                    >
+                      <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                        Level {level.level_name}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>What do you like to listen to?</Text>
+            <Text style={styles.sectionSubtitle}>Pick at least one genre to personalize your experience.</Text>
+
+            {loading ? (
+              <ActivityIndicator color="#5C3D2E" style={{ marginTop: 24 }} />
+            ) : (
+              <View style={styles.grid}>
+                {genres.map((genre) => {
+                  const isSelected = selected.has(genre.genre_id);
+                  return (
+                    <Pressable
+                      key={genre.genre_id}
+                      style={[styles.chip, isSelected && styles.chipSelected]}
+                      onPress={() => toggleGenre(genre)}
+                    >
+                      <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                        {genre.genre_name}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+          </View>
         </ScrollView>
-      )}
 
-      <View style={styles.footer}>
-        <Pressable
-          style={[styles.continueBtn, selected.size === 0 && styles.continueBtnDisabled]}
-          onPress={handleContinue}
-          disabled={selected.size === 0 || saving}
-        >
-          {saving ? (
-            <ActivityIndicator color="#5C3D2E" />
-          ) : (
-            <Text style={styles.continueText}>Continue</Text>
-          )}
-        </Pressable>
-      </View>
+        <View style={styles.footer}>
+          <Pressable
+            style={[styles.continueBtn, !canContinue && styles.continueBtnDisabled]}
+            onPress={handleContinue}
+            disabled={!canContinue || saving}
+          >
+            {saving ? (
+              <ActivityIndicator color="#5C3D2E" />
+            ) : (
+              <Text style={styles.continueText}>Continue</Text>
+            )}
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -116,6 +177,12 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: "#FDF6EC",
+  },
+  flex: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 24,
   },
   header: {
     paddingHorizontal: 24,
@@ -134,12 +201,38 @@ const styles = StyleSheet.create({
     color: "#8B6347",
     marginTop: 8,
   },
+  section: {
+    paddingHorizontal: 24,
+    paddingTop: 20,
+  },
+  sectionTitle: {
+    fontFamily: "Courier New",
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#5C3D2E",
+  },
+  sectionSubtitle: {
+    fontFamily: "Courier New",
+    fontSize: 13,
+    color: "#8B6347",
+    marginTop: 6,
+  },
+  input: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: "#E8D5C0",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    fontFamily: "Courier New",
+    fontSize: 14,
+    color: "#5C3D2E",
+    backgroundColor: "#FFF8F0",
+  },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: 24,
+    marginTop: 16,
     gap: 12,
   },
   chip: {

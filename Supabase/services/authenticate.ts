@@ -43,3 +43,13 @@ export async function signOut() {
     const { error } = await supabase.auth.signOut();
     return { error };
 }
+
+//Setting the user's display name
+export async function updateDisplayName(displayName: string) {
+  const { data, error } = await supabase.auth.updateUser({
+    data: { display_name: displayName },
+  });
+
+  if (error) throw error;
+  return data;
+}
