@@ -169,9 +169,14 @@ export default function Home() {
         {isLoading ? (
           <ActivityIndicator color="#5C3D2E" />
         ) : user ? (
-          <Pressable style={styles.loginBtn} onPress={logout}>
-            <Text style={styles.loginText}>Log out</Text>
-          </Pressable>
+          <View style={styles.authBtns}>
+            <Pressable style={styles.profileBtn} onPress={() => router.push("/profile")}>
+              <Text style={styles.profileBtnText}>👤</Text>
+            </Pressable>
+            <Pressable style={styles.loginBtn} onPress={logout}>
+              <Text style={styles.loginText}>Log out</Text>
+            </Pressable>
+          </View>
         ) : (
           <View style={styles.authBtns}>
             <Pressable style={styles.loginBtn} onPress={() => openModal("signup")}>
@@ -330,6 +335,17 @@ const styles = StyleSheet.create({
     fontFamily: "Courier New",
     fontSize: 14,
     color: "#5C3D2E",
+  },
+  profileBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#E8C5A0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  profileBtnText: {
+    fontSize: 16,
   },
   scrollContent: {
     flexGrow: 1,

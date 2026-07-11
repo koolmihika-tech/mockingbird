@@ -12,6 +12,14 @@ export async function hasUserPrefs(userId: string): Promise<boolean> {
 }
 
 export async function saveUserPrefs(userId: string, genreIds: string[]): Promise<void> {
+  const { error: deleteError } = await supabase
+    .schema("Mockingbird")
+    .from("user_prefs")
+    .delete()
+    .eq("user_id", userId);
+
+  if (deleteError) throw deleteError;
+
   const rows = genreIds.map((genre_id) => ({ user_id: userId, genre_id }));
   const { error } = await supabase
     .schema("Mockingbird")

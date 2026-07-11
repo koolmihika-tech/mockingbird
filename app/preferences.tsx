@@ -15,8 +15,8 @@ import {
 } from "react-native";
 import { useSupabaseAuth } from "../context/SupabaseAuth";
 import { updateDisplayName } from "../Supabase/services/authenticate";
-import { fetchGenres, type Genre } from "../Supabase/services/genres";
-import { fetchAvailableLevels, saveUserLevel, type Level } from "../Supabase/services/levels";
+import { fetchGenres, fetchUserGenres, type Genre } from "../Supabase/services/genres";
+import { fetchAvailableLevels, fetchUserLevel, saveUserLevel, type Level } from "../Supabase/services/levels";
 import { saveUserPrefs } from "../Supabase/services/preferences";
 
 const NO_PREFERENCE = "no preference";
@@ -33,14 +33,21 @@ export default function PreferencesScreen() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    Promise.all([fetchGenres(), fetchAvailableLevels()])
-      .then(([genreData, levelData]) => {
+    if (!user) return;
+    Promise.all([fetchGenres(), fetchAvailableLevels(), fetchUserLevel(user.id), fetchUserGenres(user.id)])
+      .then(([genreData, levelData, currentLevel, currentGenres]) => {
         setGenres(genreData);
         setLevels(levelData);
+        if (currentLevel) setSelectedLevel(currentLevel.level_id);
+        if (currentGenres.length > 0) setSelected(new Set(currentGenres.map((g) => g.genre_id)));
+        if (user.user_metadata?.display_name) setName(user.user_metadata.display_name);
       })
-      .catch(() => Alert.alert("Error", "Could not load your options."))
+      .catch((e) => {
+        console.error("Failed to load preferences:", e);
+        Alert.alert("Error", "Could not load your options.");
+      })
       .finally(() => setLoading(false));
-  }, []);
+  }, [user]);
 
   function toggleGenre(genre: Genre) {
     const isNoPreference = genre.genre_name.trim().toLowerCase() === NO_PREFERENCE;
@@ -74,8 +81,9 @@ export default function PreferencesScreen() {
       await updateDisplayName(name.trim());
       await saveUserPrefs(user.id, Array.from(selected));
       await saveUserLevel(user.id, selectedLevel);
-      router.replace("/");
-    } catch {
+      router.replace("/profile");
+    } catch (e) {
+      console.error("Failed to save preferences:", e);
       Alert.alert("Error", "Could not save your details. Please try again.");
     } finally {
       setSaving(false);

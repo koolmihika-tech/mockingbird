@@ -21,7 +21,29 @@ export async function saveUserLevel(userId: string, levelId: string): Promise<vo
   const { error } = await supabase
     .schema("Mockingbird")
     .from("user_levels")
-    .insert({ user_id: userId, level_id: levelId });
+    .upsert({ user_id: userId, level_id: levelId }, { onConflict: "user_id" });
 
   if (error) throw error;
+}
+
+export async function fetchUserLevel(userId: string): Promise<Level | null> {
+  const { data, error } = await supabase
+    .schema("Mockingbird")
+    .from("user_levels")
+    .select("level_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+
+  const { data: level, error: levelError } = await supabase
+    .schema("Mockingbird")
+    .from("levels")
+    .select("*")
+    .eq("level_id", data.level_id)
+    .maybeSingle();
+
+  if (levelError) throw levelError;
+  return level ?? null;
 }
