@@ -44,3 +44,20 @@ export async function generateQuestions(
   // console.log("[questions] success, question count:", data?.questions?.length);
   return data.questions;
 }
+
+// Calls the same edge function in "mixed" mode: given a grammar/vocab topic
+// (not a specific song), returns a blend of reading and writing questions.
+export async function generateTopicQuestions(topic: string, count = 6): Promise<Question[]> {
+  const { data, error } = await supabase.functions.invoke("generate-questions", {
+    body: { topic, count },
+  });
+
+  if (error) {
+    if (error instanceof FunctionsHttpError) {
+      const body = await error.context.json().catch(() => null);
+      throw new Error(body?.error ?? error.message);
+    }
+    throw error;
+  }
+  return data.questions;
+}

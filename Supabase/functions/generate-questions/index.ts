@@ -49,6 +49,20 @@ function buildPrompt(songName: string, words: string[], mode: "reading" | "writi
   );
 }
 
+// Grammar/vocab-topic version: not tied to a song, and blends reading +
+// writing question types together instead of generating one type at a time.
+function buildTopicPrompt(topic: string, count: number) {
+  return (
+    `You are a Spanish-language tutor. Create ${count} short practice questions for a learner studying the topic ` +
+    `"${topic}". Mix two question types together, interleaved rather than grouped: roughly half should be ` +
+    `"multiple_choice" reading-comprehension questions — a short Spanish sentence using "${topic}", asking the ` +
+    `learner to identify its meaning, with 3-4 plausible options and one correct; the other half should be ` +
+    `"short_answer" writing-practice prompts in English, each asking the learner to write one Spanish sentence that ` +
+    `correctly uses "${topic}", with a sample correct sentence as the answer. Set "targetWord" to the specific word ` +
+    `or phrase from "${topic}" that each question practices.`
+  );
+}
+
 Deno.serve(async (req) => {
   console.log("[generate-questions] request received, method:", req.method);
 
@@ -70,20 +84,34 @@ Deno.serve(async (req) => {
   try {
     const rawBody = await req.text();
     console.log("[generate-questions] raw body:", rawBody);
-    const { songName, words, mode, count = 5 } = JSON.parse(rawBody);
-    console.log("[generate-questions] parsed body:", { songName, wordsCount: words?.length, mode, count });
+    const { songName, words, mode, topic, count = 5 } = JSON.parse(rawBody);
+    console.log("[generate-questions] parsed body:", { songName, wordsCount: words?.length, mode, topic, count });
 
-    if (!songName || !Array.isArray(words) || words.length === 0 || (mode !== "reading" && mode !== "writing")) {
+    let prompt: string;
+    if (typeof topic === "string" && topic.trim().length > 0) {
+      prompt = buildTopicPrompt(topic, count);
+    } else if (
+      songName &&
+      Array.isArray(words) &&
+      words.length > 0 &&
+      (mode === "reading" || mode === "writing")
+    ) {
+      prompt = buildPrompt(songName, words, mode, count);
+    } else {
       console.error("[generate-questions] validation failed for parsed body");
-      return new Response(JSON.stringify({ error: "songName, words[], and mode ('reading'|'writing') are required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({
+          error: "Either topic, or songName + words[] + mode ('reading'|'writing'), are required",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     console.log("[generate-questions] calling Gemini, model:", MODEL);
     const client = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-    const prompt = buildPrompt(songName, words, mode, count);
     console.log("[generate-questions] prompt:", prompt);
 
     const interaction = await client.interactions.create({

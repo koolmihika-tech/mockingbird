@@ -6,12 +6,28 @@ export interface Level {
   complexity: string | null;
 }
 
+export interface LevelTopic extends Level {
+  topics: string;
+  focus_area: string | null;
+  goal: string | null;
+}
+
 export async function fetchAvailableLevels(): Promise<Level[]> {
   const { data, error } = await supabase
     .schema("Mockingbird")
     .from("levels")
     .select("*")
     .eq("level_name", "1");
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchAllLevelTopics(): Promise<LevelTopic[]> {
+  const { data, error } = await supabase
+    .schema("Mockingbird")
+    .from("levels")
+    .select("*");
 
   if (error) throw error;
   return data ?? [];
