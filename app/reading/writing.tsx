@@ -1,15 +1,19 @@
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
-import { fetchAllLevelTopics, type LevelTopic } from "../../Supabase/services/levels";
+import { useSupabaseAuth } from "../../context/SupabaseAuth";
+import { SONGS } from "../../data/songs";
+import { fetchAllLevelTopics, fetchUserLevel, type Level, type LevelTopic } from "../../Supabase/services/levels";
 
 type PathBox = { key: string; label: string; topic?: LevelTopic };
 
 export default function ReadingWritingScreen() {
   const router = useRouter();
+  const { user } = useSupabaseAuth();
   const [levelTopics, setLevelTopics] = useState<LevelTopic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userLevel, setUserLevel] = useState<Level | null>(null);
 
   useEffect(() => {
     fetchAllLevelTopics()
@@ -20,6 +24,13 @@ export default function ReadingWritingScreen() {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchUserLevel(user.id)
+      .then(setUserLevel)
+      .catch(() => setUserLevel(null));
+  }, [user]);
 
   const levels = useMemo(() => {
     const byLevel = new Map<string, LevelTopic[]>();
@@ -45,21 +56,51 @@ export default function ReadingWritingScreen() {
         <Text style={styles.errorText}>{error}</Text>
       ) : (
         <ScrollView contentContainerStyle={styles.container}>
+          <View style={styles.carouselSection}>
+            <Text style={styles.carouselLabel}>Choose a song to begin</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.carouselContent}
+            >
+              {SONGS.map((song) => (
+                <Pressable
+                  key={song.id}
+                  style={styles.songTile}
+                  onPress={() => router.push(`/reading/${song.id}` as any)}
+                >
+                  <View style={[styles.songCover, { backgroundColor: song.coverColor }]}>
+                    <Text style={styles.songCoverNote}>♪</Text>
+                  </View>
+                  <Text style={styles.songTileName} numberOfLines={1}>{song.displayName ?? song.name}</Text>
+                  <Text style={styles.songTileArtist} numberOfLines={1}>{song.displayName ? "—" : song.artist}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+
           {levels.map(([levelName, topics]) => {
             const boxes: PathBox[] = [
               ...topics.slice(0, 4).map((t) => ({ key: t.level_id, label: t.goal ?? t.topics, topic: t })),
               { key: `${levelName}-unit-test`, label: "Unit Test" },
             ];
+            const isLocked = !!userLevel && Number(levelName) > Number(userLevel.level_name);
             return (
               <View key={levelName} style={styles.levelSection}>
-                <Text style={styles.levelHeading}>Level {levelName}</Text>
+                <Text style={[styles.levelHeading, isLocked && styles.lockedHeading]}>
+                  Level {levelName}
+                </Text>
                 <View style={styles.path}>
                   {boxes.map((box, i) => {
                     const isUnitTest = !box.topic;
                     return (
                       <View key={box.key} style={styles.pathItem}>
                         <Pressable
-                          style={[styles.box, isUnitTest && styles.unitTestBox]}
+                          style={[
+                            styles.box,
+                            isUnitTest && styles.unitTestBox,
+                            isLocked && styles.lockedBox,
+                          ]}
                           disabled={isUnitTest}
                           onPress={() =>
                             box.topic &&
@@ -69,7 +110,15 @@ export default function ReadingWritingScreen() {
                             } as any)
                           }
                         >
-                          <Text style={[styles.boxText, isUnitTest && styles.unitTestText]}>{box.label}</Text>
+                          <Text
+                            style={[
+                              styles.boxText,
+                              isUnitTest && styles.unitTestText,
+                              isLocked && styles.lockedBoxText,
+                            ]}
+                          >
+                            {box.label}
+                          </Text>
                         </Pressable>
                         {i < boxes.length - 1 && <Text style={styles.arrow}>↓</Text>}
                       </View>
@@ -129,6 +178,60 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingBottom: 48,
   },
+  carouselSection: {
+    marginHorizontal: -24,
+    paddingBottom: 8,
+    marginBottom: 24,
+  },
+  carouselLabel: {
+    fontFamily: "Courier New",
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#5C3D2E",
+    paddingHorizontal: 24,
+    marginBottom: 10,
+  },
+  carouselContent: {
+    paddingHorizontal: 24,
+    gap: 14,
+  },
+  songTile: {
+    width: 110,
+    alignItems: "center",
+  },
+  songCover: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 6,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  songCoverNote: {
+    fontSize: 36,
+    color: "#5C3D2E",
+  },
+  songTileName: {
+    fontFamily: "Courier New",
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#5C3D2E",
+    textAlign: "center",
+    width: 100,
+  },
+  songTileArtist: {
+    fontFamily: "Courier New",
+    fontSize: 11,
+    color: "#8B6347",
+    textAlign: "center",
+    width: 100,
+    marginTop: 2,
+  },
   levelSection: {
     marginBottom: 32,
   },
@@ -138,6 +241,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#5C3D2E",
     marginBottom: 16,
+  },
+  lockedHeading: {
+    color: "#B0A99F",
   },
   path: {
     alignItems: "center",
@@ -168,6 +274,13 @@ const styles = StyleSheet.create({
   },
   unitTestText: {
     fontWeight: "600",
+  },
+  lockedBox: {
+    backgroundColor: "#EDEAE4",
+    borderColor: "#D8D3CA",
+  },
+  lockedBoxText: {
+    color: "#B0A99F",
   },
   arrow: {
     fontFamily: "Courier New",

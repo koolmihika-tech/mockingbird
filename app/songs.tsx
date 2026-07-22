@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -11,15 +11,36 @@ import {
 } from "react-native";
 import YoutubePlayer from "react-native-youtube-iframe";
 import { getLyrics } from "../api/lrclib";
+import { useSupabaseAuth } from "../context/SupabaseAuth";
 import { SONGS as PLACEHOLDER_SONGS, type Song } from "../data/songs";
+import { fetchUserLevel, type Level } from "../Supabase/services/levels";
 
 
 export default function SongsScreen() {
   const router = useRouter();
+  const { user } = useSupabaseAuth();
   const [activeSong, setActiveSong] = useState<Song | null>(null);
   const [lyrics, setLyrics] = useState<string | null>(null);
   const [loadingLyrics, setLoadingLyrics] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userLevel, setUserLevel] = useState<Level | null>(null);
+  const [loadingLevel, setLoadingLevel] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      setLoadingLevel(false);
+      return;
+    }
+    fetchUserLevel(user.id)
+      .then(setUserLevel)
+      .catch(() => setUserLevel(null))
+      .finally(() => setLoadingLevel(false));
+  }, [user]);
+
+  const visibleSongs = useMemo(() => {
+    if (!userLevel) return PLACEHOLDER_SONGS;
+    return PLACEHOLDER_SONGS.filter((song) => song.level === userLevel.level_name);
+  }, [userLevel]);
 
   async function handleSongPress(song: Song) {
     if (activeSong?.id === song.id) {
@@ -54,7 +75,12 @@ export default function SongsScreen() {
       </View>
       <ScrollView contentContainerStyle={styles.container} nestedScrollEnabled>
 
-        {PLACEHOLDER_SONGS.map((song) => (
+        {loadingLevel ? (
+          <ActivityIndicator color="#5C3D2E" style={{ marginTop: 20 }} />
+        ) : visibleSongs.length === 0 ? (
+          <Text style={styles.songArtist}>No songs available for your level yet.</Text>
+        ) : (
+        visibleSongs.map((song) => (
           <Pressable
             key={song.id}
             style={[
@@ -71,7 +97,8 @@ export default function SongsScreen() {
               <Text style={styles.playingIndicator}>♪</Text>
             )}
           </Pressable>
-        ))}
+        ))
+        )}
 
         {activeSong && (
           <View style={styles.playerPanel}>

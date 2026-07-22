@@ -4,6 +4,7 @@ export interface Song {
   artist: string;
   coverColor: string;
   displayName?: string;
+  level: string;
   videoQueries: string[];
   videoIds: string[];
 }
@@ -14,6 +15,7 @@ export const SONGS: Song[] = [
     name: "Vivir Mi Vida",
     artist: "Marc Anthony",
     coverColor: "#E8C5A0",
+    level: "1",
     videoQueries: [
       "vivir mi vida marc anthony",
       "vivir mi vida marc anthony letra",
@@ -28,6 +30,7 @@ export const SONGS: Song[] = [
     name: "Me Gustas Tú",
     artist: "Mano Chao",
     coverColor: "#D4A9A9",
+    level: "1",
     videoQueries: [
       "me gustas tu mano chao",
       "me gustas tu mano chao letra",
@@ -42,6 +45,7 @@ export const SONGS: Song[] = [
     name: "Limón y Sal",
     artist: "Julieta Venegas",
     coverColor: "#B5C9A8",
+    level: "2",
     videoQueries: [
       "limon y sal julieta venegas",
       "limon y sal julieta venegas letra",
@@ -55,7 +59,8 @@ export const SONGS: Song[] = [
     id: "4",
     name: "Mejor Que Ayer",
     artist: "Diego Torres",
-    coverColor: "#A9BFD4",
+    coverColor: "#A9BFD4",    
+    level: "2",
     videoQueries: [
       "mejor que ayer diego torres",
       "mejor que ayer diego torres letra",
@@ -70,6 +75,7 @@ export const SONGS: Song[] = [
     name: "Robarte un Beso",
     artist: "Carlos Vives Sebastián Yatra",
     coverColor: "#C9B8D4",
+    level: "2",
     videoQueries: [
       "robarte un beso carlos vives sebastian yatra",
       "robarte un beso carlos vives sebastian yatra letra",
@@ -84,6 +90,7 @@ export const SONGS: Song[] = [
     name: "La Libertad",
     artist: "Álvaro Soler",
     coverColor: "#A8C9C0",
+    level: "1",
     videoQueries: [
       "la libertad alvaro soler",
       "la libertad alvaro soler letra",
@@ -98,6 +105,7 @@ export const SONGS: Song[] = [
     name: "Me Gustas Tú",
     artist: "Mano Chao",
     coverColor: "#D4C9A8",
+    level: "2",
     displayName: "Placeholder",
     videoQueries: [
       "me gustas tu mano chao letra",
@@ -112,6 +120,7 @@ export const SONGS: Song[] = [
     name: "Despacito",
     artist: "Luis Fonsi",
     coverColor: "#C0A8C9",
+    level: "2",
     displayName: "Placeholder",
     videoQueries: [
       "despacito luis fonsi",
@@ -126,6 +135,7 @@ export const SONGS: Song[] = [
     name: "Bailando",
     artist: "Enrique Iglesias",
     coverColor: "#A8B5C9",
+    level: "2",
     displayName: "Placeholder",
     videoQueries: [
       "bailando enrique iglesias",
@@ -140,6 +150,7 @@ export const SONGS: Song[] = [
     name: "La Bicicleta",
     artist: "Carlos Vives Shakira",
     coverColor: "#C9A8A8",
+    level: "2",
     displayName: "Placeholder",
     videoQueries: [
       "la bicicleta carlos vives shakira",

@@ -133,7 +133,7 @@ function Drawer({ visible, onClose, router }: { visible: boolean; onClose: () =>
 
 export default function Home() {
   const router = useRouter();
-  const { user, login, signup, logout, isLoading, error: authError } = useSupabaseAuth();
+  const { user, login, signup, loginWithGoogle, logout, isLoading, error: authError } = useSupabaseAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"login" | "signup" | null>(null);
   const [email, setEmail] = useState("");
@@ -151,6 +151,11 @@ export default function Home() {
     } else {
       await signup(email, password);
     }
+    if (!authError) setModalMode(null);
+  }
+
+  async function handleGoogleSubmit() {
+    await loginWithGoogle();
     if (!authError) setModalMode(null);
   }
 
@@ -275,6 +280,11 @@ export default function Home() {
               {isLoading
                 ? <ActivityIndicator color="#5C3D2E" />
                 : <Text style={styles.modalBtnText}>{modalMode === "signup" ? "Sign up" : "Log in"}</Text>}
+            </Pressable>
+            <Pressable style={styles.googleBtn} onPress={handleGoogleSubmit} disabled={isLoading}>
+              <Text style={styles.googleBtnText}>
+                {modalMode === "signup" ? "Sign up with Google" : "Log in with Google"}
+              </Text>
             </Pressable>
             <Pressable onPress={() => setModalMode(null)}>
               <Text style={styles.modalCancel}>Cancel</Text>
@@ -489,6 +499,20 @@ const styles = StyleSheet.create({
   modalBtnText: {
     fontFamily: "Courier New",
     fontSize: 15,
+    fontWeight: "600",
+    color: "#5C3D2E",
+  },
+  googleBtn: {
+    backgroundColor: "#FDF6EC",
+    borderWidth: 1,
+    borderColor: "#E8D5C0",
+    borderRadius: 20,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  googleBtnText: {
+    fontFamily: "Courier New",
+    fontSize: 14,
     fontWeight: "600",
     color: "#5C3D2E",
   },

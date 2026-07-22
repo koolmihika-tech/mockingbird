@@ -1,11 +1,12 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { supabase } from "../Supabase/lib/supabase";
-import { signIn, signOut, signUp } from "../Supabase/services/authenticate";
+import { signIn, signInWithGoogle, signOut, signUp } from "../Supabase/services/authenticate";
 
 interface SupabaseAuthContextType {
   user: any | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
   error: string | null;
@@ -15,6 +16,7 @@ const SupabaseAuthContext = createContext<SupabaseAuthContextType>({
   user: null,
   login: async () => {},
   signup: async () => {},
+  loginWithGoogle: async () => {},
   logout: async () => {},
   isLoading: false,
   error: null,
@@ -63,13 +65,26 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function loginWithGoogle() {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await signInWithGoogle();
+      if (data?.user) setUser(data.user);
+    } catch (e: any) {
+      setError(e.message ?? "Google sign in failed");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   async function logout() {
     await signOut();
     setUser(null);
   }
 
   return (
-    <SupabaseAuthContext.Provider value={{ user, login, signup, logout, isLoading, error }}>
+    <SupabaseAuthContext.Provider value={{ user, login, signup, loginWithGoogle, logout, isLoading, error }}>
       {children}
     </SupabaseAuthContext.Provider>
   );

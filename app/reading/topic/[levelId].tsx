@@ -1,26 +1,13 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, StyleSheet, Text } from "react-native";
+import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text } from "react-native";
 import { QuestionCard } from "../../../components/QuestionCards";
-import { generateTopicQuestions, Question } from "../../../Supabase/services/questions";
+import { getLessonQuestions } from "../../../data/lessonQuestions";
 
 export default function TopicPracticeScreen() {
   const router = useRouter();
-  const { topic, label } = useLocalSearchParams<{ levelId: string; topic: string; label: string }>();
+  const { levelId, topic, label } = useLocalSearchParams<{ levelId: string; topic: string; label: string }>();
 
-  const [questions, setQuestions] = useState<Question[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!topic) return;
-    setLoading(true);
-    setError(null);
-    generateTopicQuestions(topic)
-      .then(setQuestions)
-      .catch((e: any) => setError(e.message ?? "Could not generate questions."))
-      .finally(() => setLoading(false));
-  }, [topic]);
+  const questions = getLessonQuestions(levelId);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -32,13 +19,11 @@ export default function TopicPracticeScreen() {
         <Text style={styles.title}>{label ?? topic}</Text>
         <Text style={styles.subtitle}>{topic}</Text>
 
-        {loading ? (
-          <ActivityIndicator color="#5C3D2E" style={styles.spinner} />
-        ) : error ? (
-          <Text style={styles.errorText}>{error}</Text>
-        ) : questions ? (
+        {questions && questions.length > 0 ? (
           questions.map((q, i) => <QuestionCard key={i} question={q} />)
-        ) : null}
+        ) : (
+          <Text style={styles.errorText}>No practice questions available for this topic yet.</Text>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -59,6 +44,5 @@ const styles = StyleSheet.create({
   container: { padding: 24, paddingBottom: 48 },
   title: { fontFamily: "Courier New", fontSize: 22, fontWeight: "bold", color: "#5C3D2E" },
   subtitle: { fontFamily: "Courier New", fontSize: 14, color: "#8B6347", marginBottom: 20 },
-  spinner: { marginTop: 20 },
   errorText: { fontFamily: "Courier New", fontSize: 14, color: "#B94A48", textAlign: "center", marginTop: 20 },
 });
