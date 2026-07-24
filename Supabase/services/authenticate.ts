@@ -1,9 +1,43 @@
-import { Alert } from "react-native";
 import * as AuthSession from "expo-auth-session";
+import { getQueryParams } from "expo-auth-session/build/QueryParams";
 import * as WebBrowser from "expo-web-browser";
+import { Alert } from "react-native";
 import { supabase } from "../lib/supabase";
 
 WebBrowser.maybeCompleteAuthSession();
+
+// Tracks the open user_sessions row for this app instance so signOut can close it
+let currentSessionId: string | null = null;
+
+async function logSessionStart(userId: string) {
+  const { data, error } = await supabase
+    .from("user_sessions")
+    .insert({ user_id: userId, sign_in: new Date().toISOString() })
+    .select("session_id")
+    .single();
+
+  if (error) {
+    console.error("Failed to log session start:", error.message);
+    return;
+  }
+
+  currentSessionId = data.session_id;
+}
+
+async function logSessionEnd() {
+  if (!currentSessionId) return;
+
+  const { error } = await supabase
+    .from("user_sessions")
+    .update({ sign_out: new Date().toISOString() })
+    .eq("session_id", currentSessionId);
+
+  if (error) {
+    console.error("Failed to log session end:", error.message);
+  }
+
+  currentSessionId = null;
+}
 
 //Signing up with email, password
 export async function signUp(email: string, password: string) {
@@ -39,6 +73,10 @@ export async function signIn(email: string, password: string) {
     Alert.alert("Login Successful", "You have successfully logged in.");
   }
 
+  if (data.user) {
+    await logSessionStart(data.user.id);
+  }
+
   return data;
 }
 
@@ -61,10 +99,10 @@ export async function signInWithGoogle() {
   if (result.type !== "success") return null;
 
   console.log("Google OAuth redirect URL:", result.url);
-  const params = new URL(result.url).searchParams;
-  const code = params.get("code");
+  const { params, errorCode } = getQueryParams(result.url);
+  const code = params.code;
   if (!code) {
-    const description = params.get("error_description") ?? params.get("error") ?? "No auth code was returned.";
+    const description = params.error_description ?? errorCode ?? "No auth code was returned.";
     Alert.alert("Google Sign In Failed", description);
     throw new Error(description);
   }
@@ -76,11 +114,17 @@ export async function signInWithGoogle() {
   }
 
   Alert.alert("Success", "You have successfully signed in with Google.");
+
+  if (sessionData.user) {
+    await logSessionStart(sessionData.user.id);
+  }
+
   return sessionData;
 }
 
 //Signing out
 export async function signOut() {
+    await logSessionEnd();
     const { error } = await supabase.auth.signOut();
     return { error };
 }
