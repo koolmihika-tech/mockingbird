@@ -1,6 +1,5 @@
 import * as AuthSession from "expo-auth-session";
 import { getQueryParams } from "expo-auth-session/build/QueryParams";
-import * as Crypto from "expo-crypto";
 import * as WebBrowser from "expo-web-browser";
 import { Alert } from "react-native";
 import { supabase } from "../lib/supabase";
@@ -11,18 +10,18 @@ WebBrowser.maybeCompleteAuthSession();
 let currentSessionId: string | null = null;
 
 async function logSessionStart(userId: string) {
-  const sessionId = Crypto.randomUUID();
-
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("user_sessions")
-    .insert({ user_id: userId, session_id: sessionId, sign_in: new Date().toISOString() });
+    .insert({ user_id: userId, sign_in: new Date().toISOString() })
+    .select("session_id")
+    .single();
 
   if (error) {
     console.error("Failed to log session start:", error.message);
     return;
   }
 
-  currentSessionId = sessionId;
+  currentSessionId = data.session_id;
 }
 
 async function logSessionEnd() {
