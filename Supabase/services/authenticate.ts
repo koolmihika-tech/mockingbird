@@ -25,25 +25,16 @@ async function logSessionStart(userId: string) {
 
   currentUserId = userId;
   currentAppSessionId = appSessionId;
-  console.log("Stored after sign-in:", { currentUserId, currentAppSessionId });
 }
 
 async function logSessionEnd() {
-  console.log("logSessionEnd called with:", { currentUserId, currentAppSessionId });
+  if (!currentUserId || !currentAppSessionId) return;
 
-  if (!currentUserId || !currentAppSessionId) {
-    console.warn("logSessionEnd skipped: missing currentUserId or currentAppSessionId");
-    return;
-  }
-
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("user_sessions")
     .update({ sign_out: new Date().toISOString() })
     .eq("user_id", currentUserId)
-    .eq("app_session_id", currentAppSessionId)
-    .select();
-
-  console.log("user_sessions update result:", { data, error });
+    .eq("app_session_id", currentAppSessionId);
 
   if (error) {
     console.error("Failed to log session end:", error.message);
