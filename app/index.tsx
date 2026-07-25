@@ -91,7 +91,7 @@ function Drawer({ visible, onClose, router }: { visible: boolean; onClose: () =>
             <Text style={styles.drawerItemText}>My Songs</Text>
           </Pressable>
 
-          <Pressable style={styles.drawerItem} onPress={() => {}}>
+          <Pressable style={styles.drawerItem} onPress={() => navigate("/progress")}>
             <Text style={styles.drawerItemText}>Progress</Text>
           </Pressable>
 
@@ -238,7 +238,7 @@ export default function Home() {
         {[
           { label: "home", route: null },
           { label: "my songs", route: "/songs" },
-          { label: "progress", route: null },
+          { label: "progress", route: "/progress" },
         ].map((tab) => (
           <Pressable
             key={tab.label}

@@ -1,8 +1,14 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Question } from "../Supabase/services/questions";
 
-export function MultipleChoiceCard({ question }: { question: Question }) {
+export function MultipleChoiceCard({
+  question,
+  onAnswered,
+}: {
+  question: Question;
+  onAnswered?: (correct: boolean) => void;
+}) {
   const [selected, setSelected] = useState<string | null>(null);
 
   return (
@@ -21,7 +27,10 @@ export function MultipleChoiceCard({ question }: { question: Question }) {
                 showResult && isCorrect && styles.optionCorrect,
                 showResult && isSelected && !isCorrect && styles.optionIncorrect,
               ]}
-              onPress={() => setSelected(option)}
+              onPress={() => {
+                setSelected(option);
+                onAnswered?.(option === question.answer);
+              }}
               disabled={selected != null}
             >
               <Text style={styles.optionText}>{option}</Text>
@@ -33,6 +42,58 @@ export function MultipleChoiceCard({ question }: { question: Question }) {
   );
 }
 
+// Fill-in-the-blank: user types an answer and it's checked against the
+// expected answer (case/whitespace-insensitive).
+export function FillBlankCard({
+  question,
+  onAnswered,
+}: {
+  question: Question;
+  onAnswered?: (correct: boolean) => void;
+}) {
+  const [value, setValue] = useState("");
+  const [checked, setChecked] = useState(false);
+  const isCorrect = value.trim().toLowerCase() === question.answer.trim().toLowerCase();
+
+  function handleCheck() {
+    setChecked(true);
+    onAnswered?.(isCorrect);
+  }
+
+  return (
+    <View style={styles.card}>
+      <Text style={styles.cardPrompt}>{question.prompt}</Text>
+      <TextInput
+        style={[
+          styles.input,
+          checked && (isCorrect ? styles.optionCorrect : styles.optionIncorrect),
+        ]}
+        value={value}
+        onChangeText={setValue}
+        editable={!checked}
+        placeholder="Escribe tu respuesta"
+        placeholderTextColor="#8B6347"
+        autoCapitalize="none"
+      />
+      {checked ? (
+        <Text style={styles.sampleAnswer}>
+          {isCorrect ? "¡Correcto!" : `Correct answer: ${question.answer}`}
+        </Text>
+      ) : (
+        <Pressable
+          style={styles.revealBtn}
+          onPress={handleCheck}
+          disabled={value.trim().length === 0}
+        >
+          <Text style={styles.revealBtnText}>Check</Text>
+        </Pressable>
+      )}
+    </View>
+  );
+}
+
+// Free-production writing prompts aren't auto-gradable, so they're always
+// counted as correct for scoring purposes.
 export function ShortAnswerCard({ question }: { question: Question }) {
   const [revealed, setRevealed] = useState(false);
 
@@ -51,12 +112,20 @@ export function ShortAnswerCard({ question }: { question: Question }) {
   );
 }
 
-export function QuestionCard({ question }: { question: Question }) {
-  return question.type === "multiple_choice" ? (
-    <MultipleChoiceCard question={question} />
-  ) : (
-    <ShortAnswerCard question={question} />
-  );
+export function QuestionCard({
+  question,
+  onAnswered,
+}: {
+  question: Question;
+  onAnswered?: (correct: boolean) => void;
+}) {
+  if (question.type === "multiple_choice") {
+    return <MultipleChoiceCard question={question} onAnswered={onAnswered} />;
+  }
+  if (question.type === "fill_blank") {
+    return <FillBlankCard question={question} onAnswered={onAnswered} />;
+  }
+  return <ShortAnswerCard question={question} />;
 }
 
 const styles = StyleSheet.create({
@@ -68,6 +137,18 @@ const styles = StyleSheet.create({
   optionCorrect: { backgroundColor: "#C9DAB5", borderColor: "#5C3D2E" },
   optionIncorrect: { backgroundColor: "#E8B5B5", borderColor: "#5C3D2E" },
   optionText: { fontFamily: "Courier New", fontSize: 14, color: "#5C3D2E" },
+
+  input: {
+    borderWidth: 1,
+    borderColor: "#E8D5C0",
+    borderRadius: 10,
+    padding: 10,
+    fontFamily: "Courier New",
+    fontSize: 14,
+    color: "#5C3D2E",
+    backgroundColor: "#FDF6EC",
+    marginBottom: 10,
+  },
 
   targetWord: { fontFamily: "Courier New", fontSize: 12, color: "#8B6347", marginBottom: 10 },
   revealBtn: { alignSelf: "flex-start", backgroundColor: "#E8C5A0", borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8 },

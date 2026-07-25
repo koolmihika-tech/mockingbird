@@ -15,8 +15,10 @@ import {
 } from "react-native";
 import YoutubePlayer, { YoutubeIframeRef } from "react-native-youtube-iframe";
 import { getLyrics, parseSyncedLyrics } from "../../api/lrclib";
+import { useSupabaseAuth } from "../../context/SupabaseAuth";
 import { SONGS } from "../../data/songs";
 import vocab from "../../data/vocabulary.json";
+import { logActivity } from "../../Supabase/services/activityHistory";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -231,11 +233,17 @@ function FlashCard({ word, definition, color }: { word: string; definition: stri
 
 export default function SongPlayerScreen() {
   const router = useRouter();
+  const { user } = useSupabaseAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const song = SONGS.find((s) => s.id === id);
 
   const playerRef = useRef<YoutubeIframeRef>(null);
   const [playing, setPlaying] = useState(true);
+
+  useEffect(() => {
+    if (!song || !user) return;
+    logActivity(user.id, "song played", song.id);
+  }, [song?.id, user?.id]);
 
   const [syncedLines, setSyncedLines] = useState<{ time: number; text: string }[] | null>(null);
   const [plainLyrics, setPlainLyrics] = useState<string | null>(null);

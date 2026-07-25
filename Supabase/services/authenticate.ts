@@ -3,6 +3,7 @@ import { getQueryParams } from "expo-auth-session/build/QueryParams";
 import * as Crypto from "expo-crypto";
 import * as WebBrowser from "expo-web-browser";
 import { Alert } from "react-native";
+import { checkAndAwardBadges } from "./badges";
 import { supabase } from "../lib/supabase";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -10,13 +11,22 @@ WebBrowser.maybeCompleteAuthSession();
 // Set on sign-in, consumed on sign-out to close the matching user_sessions row
 let currentUserId: string | null = null;
 let currentAppSessionId: string | null = null;
+let currentDbSessionId: string | null = null;
+
+// The Supabase-generated user_sessions.session_id for the active session, used
+// to link rows in other tables (e.g. user_activity_history) to this session.
+export function getCurrentDbSessionId(): string | null {
+  return currentDbSessionId;
+}
 
 async function logSessionStart(userId: string) {
   const appSessionId = Crypto.randomUUID();
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("user_sessions")
-    .insert({ user_id: userId, app_session_id: appSessionId, sign_in: new Date().toISOString() });
+    .insert({ user_id: userId, app_session_id: appSessionId, sign_in: new Date().toISOString() })
+    .select("session_id")
+    .single();
 
   if (error) {
     console.error("Failed to log session start:", error.message);
@@ -25,6 +35,7 @@ async function logSessionStart(userId: string) {
 
   currentUserId = userId;
   currentAppSessionId = appSessionId;
+  currentDbSessionId = data.session_id;
 }
 
 async function logSessionEnd() {
@@ -43,6 +54,7 @@ async function logSessionEnd() {
 
   currentUserId = null;
   currentAppSessionId = null;
+  currentDbSessionId = null;
 }
 
 //Signing up with email, password
@@ -81,6 +93,7 @@ export async function signIn(email: string, password: string) {
 
   if (data.user) {
     await logSessionStart(data.user.id);
+    await checkAndAwardBadges(data.user.id);
   }
 
   return data;
@@ -123,6 +136,7 @@ export async function signInWithGoogle() {
 
   if (sessionData.user) {
     await logSessionStart(sessionData.user.id);
+    await checkAndAwardBadges(sessionData.user.id);
   }
 
   return sessionData;

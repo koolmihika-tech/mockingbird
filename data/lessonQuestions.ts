@@ -9,6 +9,7 @@ import type { Question } from "../Supabase/services/questions";
 // 3) short_answer guided production, 4) short_answer free production.
 
 export interface TopicLesson {
+  lessonId: string; 
   levelId: string; // levels.level_id — unique per topic row
   topic: string; // levels.topics
   goal: string; // levels.goal (path box label)
@@ -27,6 +28,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
     levelName: "1",
     topics: [
       {
+        lessonId: '1',
         levelId: "1fc0959d-fa09-4a24-88eb-5fcf0043b454",
         topic: "Hola, adiós, gracias",
         goal: "Introductions",
@@ -60,6 +62,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         ],
       },
       {
+        lessonId: '2',
         levelId: "ddb968e1-510e-479b-bfcd-59e2aa0ae52d",
         topic: "Subject Pronouns",
         goal: "Greetings",
@@ -92,6 +95,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         ],
       },
       {
+        lessonId: '3',
         levelId: "c221219d-ef77-4e77-90d6-95139a84a3dd",
         topic: "Ser (soy, eres, es)",
         goal: "Basic Courtesy",
@@ -124,6 +128,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         ],
       },
       {
+        lessonId: '4',
         levelId: "bd1700a1-f4ac-45a8-9559-0563bd120bf7",
         topic: "Numbers 1-20",
         goal: "Numbers",
@@ -162,6 +167,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
     levelName: "2",
     topics: [
       {
+        lessonId: '5',
         levelId: "c17a82aa-d203-4d0a-8e5a-d020d8c29ee3",
         topic: "Me llamo, tengo años",
         goal: "Name and Age",
@@ -194,6 +200,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         ],
       },
       {
+        lessonId: '6',
         levelId: "b091a0ef-2fa7-4800-aab4-0c79f1afb2c6",
         topic: "Country and nationality vocabulary",
         goal: "Nationality",
@@ -226,6 +233,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         ],
       },
       {
+        lessonId: '7',
         levelId: "93613e0e-fa4f-464b-bfbf-c307a671f9a4",
         topic: "Common jobs and occupations",
         goal: "Profession",
@@ -258,6 +266,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         ],
       },
       {
+        lessonId: '8',
         levelId: "787f1a76-ee0d-44dc-bbca-8c86346255ba",
         topic: "Days and months",
         goal: "Dates",
@@ -296,6 +305,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
     levelName: "3",
     topics: [
       {
+        lessonId: '9',
         levelId: "43bcf084-c464-4dfe-8aa6-cb4e56863aa5",
         topic: "Common color vocabulary",
         goal: "Colors",
@@ -328,6 +338,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         ],
       },
       {
+        lessonId: '10',
         levelId: "637c5fd2-fb15-4ac6-944f-7551101e9d63",
         topic: "Objects around the house",
         goal: "Household Items",
@@ -360,6 +371,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         ],
       },
       {
+        lessonId: '11',
         levelId: "4a09444a-bdb9-4ca8-9f63-c5ac26747896",
         topic: "School and learning vocabulary",
         goal: "Classroom Items",
@@ -392,6 +404,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         ],
       },
       {
+        lessonId: '12',
         levelId: "7daad5b4-63a7-4086-9bc4-2519f4f822ae",
         topic: "Adjective agreement, hay",
         goal: "Descriptions",
@@ -435,6 +448,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
     levelName: "4",
     topics: [
       {
+        lessonId: '13',
         levelId: "3a0655b5-4a34-44b3-a227-c915c8711877",
         topic: "Parents, siblings, and relatives",
         goal: "Family Members",
@@ -467,6 +481,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         ],
       },
       {
+        lessonId: '14',
         levelId: "9cd63d75-0f74-4962-8bf9-e3a7e71ab870",
         topic: "Friends and common relationships",
         goal: "Relationships",
@@ -499,6 +514,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         ],
       },
       {
+        lessonId: '15',
         levelId: "912d5f15-444d-412c-a808-c5eec6d9af93",
         topic: "Mi, tu, su, nuestro",
         goal: "Possession",
@@ -531,6 +547,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         ],
       },
       {
+        lessonId: '16',
         levelId: "4996d033-f22f-4269-849e-798ef4dd21ed",
         topic: "Tener, possessives",
         goal: "Having and Describing",
@@ -572,6 +589,16 @@ const LESSON_QUESTIONS_BY_LEVEL_ID: Record<string, Question[]> = Object.fromEntr
   )
 );
 
+const LESSON_ID_BY_LEVEL_ID: Record<string, string> = Object.fromEntries(
+  LESSON_SUBCATEGORIES.flatMap((subcategory) =>
+    subcategory.topics.map((topic) => [topic.levelId, topic.lessonId])
+  )
+);
+
 export function getLessonQuestions(levelId: string): Question[] | undefined {
   return LESSON_QUESTIONS_BY_LEVEL_ID[levelId];
+}
+
+export function getLessonId(levelId: string): string | undefined {
+  return LESSON_ID_BY_LEVEL_ID[levelId];
 }
