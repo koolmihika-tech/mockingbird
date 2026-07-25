@@ -1,42 +1,57 @@
 import * as AuthSession from "expo-auth-session";
 import { getQueryParams } from "expo-auth-session/build/QueryParams";
+import * as Crypto from "expo-crypto";
 import * as WebBrowser from "expo-web-browser";
 import { Alert } from "react-native";
 import { supabase } from "../lib/supabase";
 
 WebBrowser.maybeCompleteAuthSession();
 
-// Tracks the open user_sessions row for this app instance so signOut can close it
-let currentSessionId: string | null = null;
+// Set on sign-in, consumed on sign-out to close the matching user_sessions row
+let currentUserId: string | null = null;
+let currentAppSessionId: string | null = null;
 
 async function logSessionStart(userId: string) {
-  const { data, error } = await supabase
+  const appSessionId = Crypto.randomUUID();
+
+  const { error } = await supabase
     .from("user_sessions")
-    .insert({ user_id: userId, sign_in: new Date().toISOString() })
-    .select("session_id")
-    .single();
+    .insert({ user_id: userId, app_session_id: appSessionId, sign_in: new Date().toISOString() });
 
   if (error) {
     console.error("Failed to log session start:", error.message);
     return;
   }
 
-  currentSessionId = data.session_id;
+  currentUserId = userId;
+  currentAppSessionId = appSessionId;
+  console.log("Stored after sign-in:", { currentUserId, currentAppSessionId });
 }
 
 async function logSessionEnd() {
-  if (!currentSessionId) return;
+  console.log("logSessionEnd called with:", { currentUserId, currentAppSessionId });
 
-  const { error } = await supabase
+  if (!currentUserId || !currentAppSessionId) {
+    console.warn("logSessionEnd skipped: missing currentUserId or currentAppSessionId");
+    return;
+  }
+
+  const { data, error } = await supabase
     .from("user_sessions")
     .update({ sign_out: new Date().toISOString() })
-    .eq("session_id", currentSessionId);
+    .eq("user_id", currentUserId)
+    .eq("app_session_id", currentAppSessionId)
+    .select();
+
+  console.log("user_sessions update result:", { data, error });
 
   if (error) {
     console.error("Failed to log session end:", error.message);
+    return;
   }
 
-  currentSessionId = null;
+  currentUserId = null;
+  currentAppSessionId = null;
 }
 
 //Signing up with email, password
