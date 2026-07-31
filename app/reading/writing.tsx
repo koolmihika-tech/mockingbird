@@ -1,19 +1,28 @@
-import { useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Surface, Text } from "react-native-paper";
+import { AppScaffold } from "../../components/AppScaffold";
+import { useAppTheme, type AppTheme } from "../../constants/theme";
 import { useSupabaseAuth } from "../../context/SupabaseAuth";
+import { getLessonId } from "../../data/lessonQuestions";
 import { SONGS } from "../../data/songs";
+import { fetchCompletedLessonIds } from "../../Supabase/services/activityHistory";
 import { fetchAllLevelTopics, fetchUserLevel, type Level, type LevelTopic } from "../../Supabase/services/levels";
 
 type PathBox = { key: string; label: string; topic?: LevelTopic };
 
 export default function ReadingWritingScreen() {
   const router = useRouter();
+  const theme = useAppTheme();
+  const styles = makeStyles(theme);
   const { user } = useSupabaseAuth();
   const [levelTopics, setLevelTopics] = useState<LevelTopic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userLevel, setUserLevel] = useState<Level | null>(null);
+  const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchAllLevelTopics()
@@ -32,6 +41,21 @@ export default function ReadingWritingScreen() {
       .catch(() => setUserLevel(null));
   }, [user]);
 
+  // Which goals are already done, from the lessons logged in
+  // user_activity_history. Refetched on focus so a goal finished in a lesson
+  // shows its green checkmark as soon as we come back here.
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) {
+        setCompletedLessons(new Set());
+        return;
+      }
+      fetchCompletedLessonIds(user.id)
+        .then(setCompletedLessons)
+        .catch(() => setCompletedLessons(new Set()));
+    }, [user])
+  );
+
   const levels = useMemo(() => {
     const byLevel = new Map<string, LevelTopic[]>();
     for (const row of levelTopics) {
@@ -41,39 +65,38 @@ export default function ReadingWritingScreen() {
     return Array.from(byLevel.entries()).sort((a, b) => Number(a[0]) - Number(b[0]));
   }, [levelTopics]);
 
-  return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.topBar}>
-        <Text style={styles.heading}>Reading &amp; Writing</Text>
-        <Pressable style={styles.homeBtn} onPress={() => router.push("/")}>
-          <Text style={styles.homeBtnText}>home</Text>
-        </Pressable>
-      </View>
+  function isGoalComplete(topic?: LevelTopic) {
+    if (!topic) return false;
+    const lessonId = getLessonId(topic.level_id);
+    return !!lessonId && completedLessons.has(String(lessonId));
+  }
 
+  return (
+    <AppScaffold title="Reading & Writing" back>
       {loading ? (
-        <ActivityIndicator color="#5C3D2E" style={styles.spinner} />
+        <ActivityIndicator color={theme.colors.primary} style={styles.spinner} />
       ) : error ? (
-        <Text style={styles.errorText}>{error}</Text>
+        <Text variant="bodyMedium" style={styles.errorText}>
+          {error}
+        </Text>
       ) : (
         <ScrollView contentContainerStyle={styles.container}>
           <View style={styles.carouselSection}>
-            <Text style={styles.carouselLabel}>Choose a song to begin</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.carouselContent}
-            >
+            <Text variant="titleMedium" style={styles.carouselLabel}>
+              Choose a song to begin
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carouselContent}>
               {SONGS.map((song) => (
-                <Pressable
-                  key={song.id}
-                  style={styles.songTile}
-                  onPress={() => router.push(`/reading/${song.id}` as any)}
-                >
-                  <View style={[styles.songCover, { backgroundColor: song.coverColor }]}>
-                    <Text style={styles.songCoverNote}>♪</Text>
-                  </View>
-                  <Text style={styles.songTileName} numberOfLines={1}>{song.displayName ?? song.name}</Text>
-                  <Text style={styles.songTileArtist} numberOfLines={1}>{song.displayName ? "—" : song.artist}</Text>
+                <Pressable key={song.id} style={styles.songTile} onPress={() => router.push(`/reading/${song.id}` as any)}>
+                  <Surface style={[styles.songCover, { backgroundColor: song.coverColor }]} elevation={2}>
+                    <MaterialCommunityIcons name="music" size={30} color="#3B2A1F" />
+                  </Surface>
+                  <Text variant="labelMedium" numberOfLines={1} style={styles.songTileName}>
+                    {song.displayName ?? song.name}
+                  </Text>
+                  <Text variant="bodySmall" numberOfLines={1} style={styles.songTileArtist}>
+                    {song.displayName ? "—" : song.artist}
+                  </Text>
                 </Pressable>
               ))}
             </ScrollView>
@@ -85,42 +108,54 @@ export default function ReadingWritingScreen() {
               { key: `${levelName}-unit-test`, label: "Unit Test" },
             ];
             const isLocked = !!userLevel && Number(levelName) > Number(userLevel.level_name);
+            // e.g. "Level 1 - Survival Spanish"
+            const focusArea = topics.find((t) => t.focus_area)?.focus_area;
+            const levelLabel = focusArea ? `Level ${levelName} - ${focusArea}` : `Level ${levelName}`;
             return (
               <View key={levelName} style={styles.levelSection}>
-                <Text style={[styles.levelHeading, isLocked && styles.lockedHeading]}>
-                  Level {levelName}
+                <Text variant="titleMedium" style={[styles.levelHeading, isLocked && styles.lockedHeading]}>
+                  {levelLabel}
                 </Text>
                 <View style={styles.path}>
                   {boxes.map((box, i) => {
                     const isUnitTest = !box.topic;
+                    const complete = isGoalComplete(box.topic);
                     return (
                       <View key={box.key} style={styles.pathItem}>
-                        <Pressable
-                          style={[
-                            styles.box,
-                            isUnitTest && styles.unitTestBox,
-                            isLocked && styles.lockedBox,
-                          ]}
-                          disabled={isUnitTest}
-                          onPress={() =>
-                            box.topic &&
-                            router.push({
-                              pathname: "/reading/topic/[levelId]",
-                              params: { levelId: box.topic.level_id, topic: box.topic.topics, label: box.label },
-                            } as any)
-                          }
-                        >
-                          <Text
-                            style={[
-                              styles.boxText,
-                              isUnitTest && styles.unitTestText,
-                              isLocked && styles.lockedBoxText,
-                            ]}
+                        <View style={styles.boxRow}>
+                          <Pressable
+                            style={[styles.box, isUnitTest && styles.unitTestBox, isLocked && styles.lockedBox]}
+                            disabled={isUnitTest}
+                            onPress={() =>
+                              box.topic &&
+                              router.push({
+                                pathname: "/reading/topic/[levelId]",
+                                params: { levelId: box.topic.level_id, topic: box.topic.topics, label: box.label },
+                              } as any)
+                            }
                           >
-                            {box.label}
-                          </Text>
-                        </Pressable>
-                        {i < boxes.length - 1 && <Text style={styles.arrow}>↓</Text>}
+                            <Text
+                              variant="bodyMedium"
+                              style={[styles.boxText, isUnitTest && styles.unitTestText, isLocked && styles.lockedBoxText]}
+                            >
+                              {box.label}
+                            </Text>
+                          </Pressable>
+                          {/* Goal completion: grey until the lesson is logged, then green */}
+                          {!isUnitTest && (
+                            <MaterialCommunityIcons
+                              name={complete ? "check-circle" : "check-circle-outline"}
+                              size={24}
+                              color={complete ? theme.colors.success : theme.colors.outline}
+                              style={styles.checkIcon}
+                              accessibilityLabel={complete ? `${box.label} completed` : `${box.label} not completed`}
+                            />
+                          )}
+                        </View>
+                        {/* Arrows connect the goals only — none before the Unit Test */}
+                        {i < boxes.length - 2 && (
+                          <MaterialCommunityIcons name="chevron-down" size={22} color={theme.colors.onSurfaceVariant} />
+                        )}
                       </View>
                     );
                   })}
@@ -130,162 +165,42 @@ export default function ReadingWritingScreen() {
           })}
         </ScrollView>
       )}
-    </SafeAreaView>
+    </AppScaffold>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: "#FDF6EC",
-  },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 12,
-  },
-  homeBtn: {
-    backgroundColor: "#E8C5A0",
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  homeBtnText: {
-    fontFamily: "Courier New",
-    fontSize: 14,
-    color: "#5C3D2E",
-  },
-  heading: {
-    fontSize: 26,
-    fontFamily: "Courier New",
-    color: "#5C3D2E",
-    fontWeight: "bold",
-  },
-  spinner: {
-    marginTop: 40,
-  },
-  errorText: {
-    fontFamily: "Courier New",
-    fontSize: 14,
-    color: "#B94A48",
-    textAlign: "center",
-    marginTop: 40,
-  },
-  container: {
-    padding: 24,
-    paddingBottom: 48,
-  },
-  carouselSection: {
-    marginHorizontal: -24,
-    paddingBottom: 8,
-    marginBottom: 24,
-  },
-  carouselLabel: {
-    fontFamily: "Courier New",
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#5C3D2E",
-    paddingHorizontal: 24,
-    marginBottom: 10,
-  },
-  carouselContent: {
-    paddingHorizontal: 24,
-    gap: 14,
-  },
-  songTile: {
-    width: 110,
-    alignItems: "center",
-  },
-  songCover: {
-    width: 100,
-    height: 100,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 6,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  songCoverNote: {
-    fontSize: 36,
-    color: "#5C3D2E",
-  },
-  songTileName: {
-    fontFamily: "Courier New",
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#5C3D2E",
-    textAlign: "center",
-    width: 100,
-  },
-  songTileArtist: {
-    fontFamily: "Courier New",
-    fontSize: 11,
-    color: "#8B6347",
-    textAlign: "center",
-    width: 100,
-    marginTop: 2,
-  },
-  levelSection: {
-    marginBottom: 32,
-  },
-  levelHeading: {
-    fontFamily: "Courier New",
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#5C3D2E",
-    marginBottom: 16,
-  },
-  lockedHeading: {
-    color: "#B0A99F",
-  },
-  path: {
-    alignItems: "center",
-  },
-  pathItem: {
-    alignItems: "center",
-  },
-  box: {
-    backgroundColor: "#FFF3E0",
-    borderWidth: 1,
-    borderColor: "#E8D5C0",
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    minWidth: 220,
-    alignItems: "center",
-  },
-  boxText: {
-    fontFamily: "Courier New",
-    fontSize: 14,
-    color: "#5C3D2E",
-    textAlign: "center",
-  },
-  unitTestBox: {
-    backgroundColor: "#E8C5A0",
-    borderColor: "#5C3D2E",
-    borderRadius: 20,
-  },
-  unitTestText: {
-    fontWeight: "600",
-  },
-  lockedBox: {
-    backgroundColor: "#EDEAE4",
-    borderColor: "#D8D3CA",
-  },
-  lockedBoxText: {
-    color: "#B0A99F",
-  },
-  arrow: {
-    fontFamily: "Courier New",
-    fontSize: 18,
-    color: "#8B6347",
-    paddingVertical: 4,
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    spinner: { marginTop: 40 },
+    errorText: { color: theme.colors.error, textAlign: "center", marginTop: 40 },
+    container: { padding: 24, paddingBottom: 48 },
+    carouselSection: { marginHorizontal: -24, paddingBottom: 8, marginBottom: 24 },
+    carouselLabel: { color: theme.colors.onBackground, fontWeight: "700", paddingHorizontal: 24, marginBottom: 12 },
+    carouselContent: { paddingHorizontal: 24, gap: 16 },
+    songTile: { width: 108, alignItems: "center" },
+    songCover: { width: 96, height: 96, borderRadius: 20, alignItems: "center", justifyContent: "center", marginBottom: 6 },
+    songTileName: { color: theme.colors.onBackground, textAlign: "center", width: 96 },
+    songTileArtist: { color: theme.colors.onSurfaceVariant, textAlign: "center", width: 96, marginTop: 2 },
+    levelSection: { marginBottom: 32 },
+    levelHeading: { color: theme.colors.onBackground, fontWeight: "800", marginBottom: 16 },
+    lockedHeading: { color: theme.colors.onSurfaceVariant, opacity: 0.6 },
+    path: { alignItems: "center" },
+    pathItem: { alignItems: "center" },
+    boxRow: { flexDirection: "row", alignItems: "center" },
+    checkIcon: { marginLeft: 10 },
+    box: {
+      backgroundColor: theme.colors.surfaceVariant,
+      borderWidth: 1,
+      borderColor: theme.colors.outlineVariant,
+      borderRadius: 16,
+      paddingVertical: 14,
+      paddingHorizontal: 18,
+      minWidth: 220,
+      alignItems: "center",
+    },
+    boxText: { color: theme.colors.onSurface, textAlign: "center" },
+    unitTestBox: { backgroundColor: theme.colors.primaryContainer, borderColor: theme.colors.primary, borderRadius: 24 },
+    unitTestText: { color: theme.colors.onPrimaryContainer, fontWeight: "700" },
+    lockedBox: { backgroundColor: theme.colors.surfaceDisabled, borderColor: theme.colors.outlineVariant },
+    lockedBoxText: { color: theme.colors.onSurfaceVariant, opacity: 0.6 },
+  });

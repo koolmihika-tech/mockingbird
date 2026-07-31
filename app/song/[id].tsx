@@ -1,20 +1,22 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Animated,
   Dimensions,
   Linking,
   Platform,
   Pressable,
-  SafeAreaView,
+  Text as RNText,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
+import { ActivityIndicator, Surface, Text } from "react-native-paper";
 import YoutubePlayer, { YoutubeIframeRef } from "react-native-youtube-iframe";
 import { getLyrics, parseSyncedLyrics } from "../../api/lrclib";
+import { AppScaffold } from "../../components/AppScaffold";
+import { FlashCardCarousel } from "../../components/FlashCards";
+import { useAppTheme, type AppTheme } from "../../constants/theme";
 import { useSupabaseAuth } from "../../context/SupabaseAuth";
 import { SONGS } from "../../data/songs";
 import vocab from "../../data/vocabulary.json";
@@ -22,10 +24,10 @@ import { logActivity } from "../../Supabase/services/activityHistory";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
+type Styles = ReturnType<typeof makeStyles>;
+
 // ─── Tappable vocabulary words within lyrics ─────────────────────────────────
 
-// Splits a block of text into tokens, tagging any token whose word matches a
-// vocabulary.json key so it can be rendered as an underlined, tappable word.
 function tokenizeVocabText(text: string, vocabMap: Record<string, string>) {
   const parts = text.split(/(\s+)/);
   const tokens: { key: string; content: string; definition?: string }[] = [];
@@ -51,17 +53,18 @@ function tokenizeVocabText(text: string, vocabMap: Record<string, string>) {
 function renderVocabText(
   text: string,
   vocabMap: Record<string, string>,
-  onWordPress: (word: string, definition: string, x: number, y: number) => void
+  onWordPress: (word: string, definition: string, x: number, y: number) => void,
+  styles: Styles
 ) {
   return tokenizeVocabText(text, vocabMap).map((t) =>
     t.definition ? (
-      <Text
+      <RNText
         key={t.key}
         style={styles.vocabWord}
         onPress={(e) => onWordPress(t.content, t.definition!, e.nativeEvent.pageX, e.nativeEvent.pageY)}
       >
         {t.content}
-      </Text>
+      </RNText>
     ) : (
       t.content
     )
@@ -73,12 +76,13 @@ function renderVocabText(
 interface VideoPlayerProps {
   videoIds: string[];
   songName: string;
-  playerRef: React.RefObject<YoutubeIframeRef>;
+  playerRef: React.RefObject<YoutubeIframeRef | null>;
   playing: boolean;
   onPlayingChange: (p: boolean) => void;
+  styles: Styles;
 }
 
-function VideoPlayer({ videoIds, songName, playerRef, playing, onPlayingChange }: VideoPlayerProps) {
+function VideoPlayer({ videoIds, songName, playerRef, playing, onPlayingChange, styles }: VideoPlayerProps) {
   const [idIndex, setIdIndex] = useState(0);
 
   const currentId = videoIds[idIndex];
@@ -99,13 +103,17 @@ function VideoPlayer({ videoIds, songName, playerRef, playing, onPlayingChange }
   if (allFailed) {
     return (
       <View style={styles.fallbackBox}>
-        <Text style={styles.fallbackIcon}>▷</Text>
-        <Text style={styles.fallbackTitle}>Video unavailable in app</Text>
-        <Text style={styles.fallbackSub}>
+        <MaterialCommunityIcons name="play-circle-outline" size={40} style={styles.fallbackIcon} />
+        <Text variant="titleSmall" style={styles.fallbackTitle}>
+          Video unavailable in app
+        </Text>
+        <Text variant="bodySmall" style={styles.fallbackSub}>
           YouTube blocked embedding for all available versions of this song.
         </Text>
         <Pressable style={styles.youtubeBtn} onPress={openOnYouTube}>
-          <Text style={styles.youtubeBtnText}>Open on YouTube ↗</Text>
+          <Text variant="labelLarge" style={styles.youtubeBtnText}>
+            Open on YouTube ↗
+          </Text>
         </Pressable>
       </View>
     );
@@ -119,7 +127,7 @@ function VideoPlayer({ videoIds, songName, playerRef, playing, onPlayingChange }
         height={210}
         videoId={currentId}
         play={playing}
-        onChangeState={(state) => {
+        onChangeState={(state: string) => {
           if (state === "playing") onPlayingChange(true);
           if (state === "paused" || state === "ended") onPlayingChange(false);
         }}
@@ -137,9 +145,10 @@ interface SyncedLyricsProps {
   onLinePress: (time: number) => void;
   vocab: Record<string, string>;
   onWordPress: (word: string, definition: string, x: number, y: number) => void;
+  styles: Styles;
 }
 
-function SyncedLyricsView({ lines, activeLine, onLinePress, vocab, onWordPress }: SyncedLyricsProps) {
+function SyncedLyricsView({ lines, activeLine, onLinePress, vocab, onWordPress, styles }: SyncedLyricsProps) {
   const scrollRef = useRef<ScrollView>(null);
   const lineOffsetsRef = useRef<number[]>([]);
 
@@ -151,88 +160,30 @@ function SyncedLyricsView({ lines, activeLine, onLinePress, vocab, onWordPress }
   }, [activeLine]);
 
   return (
-    <ScrollView
-      ref={scrollRef}
-      style={styles.syncedScroll}
-      nestedScrollEnabled
-      showsVerticalScrollIndicator={false}
-    >
+    <ScrollView ref={scrollRef} style={styles.syncedScroll} nestedScrollEnabled showsVerticalScrollIndicator={false}>
       {lines.map((line, i) => (
         <Pressable
           key={i}
-          onLayout={(e) => { lineOffsetsRef.current[i] = e.nativeEvent.layout.y; }}
+          onLayout={(e) => {
+            lineOffsetsRef.current[i] = e.nativeEvent.layout.y;
+          }}
           onPress={() => onLinePress(line.time)}
           style={styles.lyricLineWrapper}
         >
-          <Text style={[styles.lyricLine, i === activeLine && styles.lyricLineActive]}>
-            {line.text ? renderVocabText(line.text, vocab, onWordPress) : " "}
-          </Text>
+          <RNText style={[styles.lyricLine, i === activeLine && styles.lyricLineActive]}>
+            {line.text ? renderVocabText(line.text, vocab, onWordPress, styles) : " "}
+          </RNText>
         </Pressable>
       ))}
     </ScrollView>
   );
 }
 
-// ─── Flashcard carousel ───────────────────────────────────────────────────────
-
-function FlashCardCarousel({ entries, color }: { entries: [string, string][]; color: string }) {
-  const [index, setIndex] = useState(0);
-  const [word, definition] = entries[index];
-
-  return (
-    <View style={styles.flashcardsSection}>
-      <Text style={styles.sectionHeader}>Vocabulary</Text>
-      <Text style={styles.sectionSubheader}>Tap a card to flip • {index + 1} of {entries.length}</Text>
-      <View style={styles.carouselRow}>
-        <Pressable
-          onPress={() => setIndex((i) => Math.max(0, i - 1))}
-          style={[styles.arrowBtn, index === 0 && styles.arrowBtnDisabled]}
-          disabled={index === 0}
-        >
-          <Text style={styles.arrowText}>‹</Text>
-        </Pressable>
-        <FlashCard key={word} word={word} definition={definition} color={color} />
-        <Pressable
-          onPress={() => setIndex((i) => Math.min(entries.length - 1, i + 1))}
-          style={[styles.arrowBtn, index === entries.length - 1 && styles.arrowBtnDisabled]}
-          disabled={index === entries.length - 1}
-        >
-          <Text style={styles.arrowText}>›</Text>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
-function FlashCard({ word, definition, color }: { word: string; definition: string; color: string }) {
-  const [flipped, setFlipped] = useState(false);
-  const anim = useRef(new Animated.Value(0)).current;
-
-  function flip() {
-    Animated.spring(anim, { toValue: flipped ? 0 : 1, friction: 8, useNativeDriver: true }).start();
-    setFlipped(!flipped);
-  }
-
-  const frontRotate = anim.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "180deg"] });
-  const backRotate  = anim.interpolate({ inputRange: [0, 1], outputRange: ["180deg", "360deg"] });
-
-  return (
-    <Pressable onPress={flip} style={styles.cardWrapper}>
-      <Animated.View style={[styles.flashCard, { backgroundColor: color, transform: [{ rotateY: frontRotate }] }]}>
-        <Text style={styles.flashCardWord}>{word}</Text>
-        <Text style={styles.flashCardHint}>tap to reveal</Text>
-      </Animated.View>
-      <Animated.View style={[styles.flashCard, styles.flashCardBack, { backgroundColor: color, transform: [{ rotateY: backRotate }] }]}>
-        <Text style={styles.flashCardDefinition}>{definition}</Text>
-      </Animated.View>
-    </Pressable>
-  );
-}
-
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function SongPlayerScreen() {
-  const router = useRouter();
+  const theme = useAppTheme();
+  const styles = makeStyles(theme);
   const { user } = useSupabaseAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const song = SONGS.find((s) => s.id === id);
@@ -301,9 +252,11 @@ export default function SongPlayerScreen() {
 
   if (!song) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <Text style={styles.notFound}>Song not found.</Text>
-      </SafeAreaView>
+      <AppScaffold title="Song" back>
+        <Text variant="titleMedium" style={styles.notFound}>
+          Song not found.
+        </Text>
+      </AppScaffold>
     );
   }
 
@@ -311,19 +264,17 @@ export default function SongPlayerScreen() {
   const vocabEntries = Object.entries(songVocab);
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.topBar}>
-        <Pressable style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={styles.backBtnText}>← back</Text>
-        </Pressable>
-      </View>
-
+    <AppScaffold title={song.name} back>
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={[styles.coverArt, { backgroundColor: song.coverColor }]}>
-          <Text style={styles.coverNote}>♪</Text>
-        </View>
-        <Text style={styles.songName}>{song.name}</Text>
-        <Text style={styles.songArtist}>{song.artist}</Text>
+        <Surface style={[styles.coverArt, { backgroundColor: song.coverColor }]} elevation={2}>
+          <MaterialCommunityIcons name="music" size={60} color="#3B2A1F" />
+        </Surface>
+        <Text variant="headlineSmall" style={styles.songName}>
+          {song.name}
+        </Text>
+        <Text variant="bodyMedium" style={styles.songArtist}>
+          {song.artist}
+        </Text>
 
         <VideoPlayer
           videoIds={song.videoIds}
@@ -331,14 +282,19 @@ export default function SongPlayerScreen() {
           playerRef={playerRef}
           playing={playing}
           onPlayingChange={setPlaying}
+          styles={styles}
         />
 
         <View style={styles.lyricsSection}>
-          <Text style={styles.sectionHeader}>Lyrics</Text>
+          <Text variant="titleMedium" style={styles.sectionHeader}>
+            Lyrics
+          </Text>
           {loadingLyrics ? (
-            <ActivityIndicator color="#5C3D2E" style={{ marginTop: 12 }} />
+            <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 12 }} />
           ) : lyricsError ? (
-            <Text style={styles.errorText}>{lyricsError}</Text>
+            <Text variant="bodyMedium" style={styles.errorText}>
+              {lyricsError}
+            </Text>
           ) : syncedLines ? (
             <SyncedLyricsView
               lines={syncedLines}
@@ -346,16 +302,22 @@ export default function SongPlayerScreen() {
               onLinePress={handleLyricPress}
               vocab={songVocab}
               onWordPress={handleWordPress}
+              styles={styles}
             />
           ) : (
-            <Text style={styles.lyricsText}>
-              {plainLyrics ? renderVocabText(plainLyrics, songVocab, handleWordPress) : null}
-            </Text>
+            <RNText style={styles.lyricsText}>
+              {plainLyrics ? renderVocabText(plainLyrics, songVocab, handleWordPress, styles) : null}
+            </RNText>
           )}
         </View>
 
         {vocabEntries.length > 0 && (
-          <FlashCardCarousel entries={vocabEntries} color={song.coverColor} />
+          <View style={styles.flashcardsSection}>
+            <Text variant="titleMedium" style={styles.sectionHeader}>
+              Vocabulary
+            </Text>
+            <FlashCardCarousel entries={vocabEntries} color={song.coverColor} />
+          </View>
         )}
       </ScrollView>
 
@@ -372,93 +334,67 @@ export default function SongPlayerScreen() {
               },
             ]}
           >
-            <Text style={styles.definitionWord}>{activeDefinition.word}</Text>
-            <Text style={styles.definitionText}>{activeDefinition.definition}</Text>
+            <RNText style={styles.definitionWord}>{activeDefinition.word}</RNText>
+            <RNText style={styles.definitionText}>{activeDefinition.definition}</RNText>
           </View>
         </>
       )}
-    </SafeAreaView>
+    </AppScaffold>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  safe:        { flex: 1, backgroundColor: "#FDF6EC" },
-  topBar:      { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
-  backBtn:     { alignSelf: "flex-start", backgroundColor: "#E8C5A0", paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
-  backBtnText: { fontFamily: "Courier New", fontSize: 14, color: "#5C3D2E" },
-  container:   { padding: 24, paddingBottom: 48, alignItems: "center" },
-  coverArt: {
-    width: 160, height: 160, borderRadius: 16,
-    alignItems: "center", justifyContent: "center", marginBottom: 16,
-    shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4,
-  },
-  coverNote:   { fontSize: 60, color: "#5C3D2E" },
-  songName:    { fontFamily: "Courier New", fontSize: 22, fontWeight: "bold", color: "#5C3D2E", textAlign: "center", marginBottom: 4 },
-  songArtist:  { fontFamily: "Courier New", fontSize: 15, color: "#8B6347", textAlign: "center", marginBottom: 20 },
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: theme.colors.background },
+    container: { padding: 24, paddingBottom: 48, alignItems: "center" },
+    coverArt: {
+      width: 160,
+      height: 160,
+      borderRadius: 24,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 16,
+    },
+    songName: { color: theme.colors.onBackground, fontWeight: "800", textAlign: "center", marginBottom: 4 },
+    songArtist: { color: theme.colors.onSurfaceVariant, textAlign: "center", marginBottom: 20 },
 
-  // Video
-  videoContainer: {
-    width: "100%", aspectRatio: 16 / 9, borderRadius: 12,
-    overflow: "hidden", backgroundColor: "#000", marginBottom: 28,
-  },
+    videoContainer: { width: "100%", aspectRatio: 16 / 9, borderRadius: 16, overflow: "hidden", backgroundColor: "#000", marginBottom: 28 },
 
-  // Fallback
-  fallbackBox: {
-    width: "100%", backgroundColor: "#FFF3E0", borderRadius: 12,
-    padding: 24, alignItems: "center", marginBottom: 28, gap: 8,
-  },
-  fallbackIcon:  { fontSize: 36, color: "#8B6347" },
-  fallbackTitle: { fontFamily: "Courier New", fontSize: 15, fontWeight: "bold", color: "#5C3D2E", textAlign: "center" },
-  fallbackSub:   { fontFamily: "Courier New", fontSize: 12, color: "#8B6347", textAlign: "center", lineHeight: 18 },
-  youtubeBtn: {
-    marginTop: 8, backgroundColor: "#E8C5A0",
-    paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20,
-  },
-  youtubeBtnText: { fontFamily: "Courier New", fontSize: 14, color: "#5C3D2E", fontWeight: "600" },
+    fallbackBox: { width: "100%", backgroundColor: theme.colors.surfaceVariant, borderRadius: 16, padding: 24, alignItems: "center", marginBottom: 28, gap: 8 },
+    fallbackIcon: { color: theme.colors.onSurfaceVariant },
+    fallbackTitle: { color: theme.colors.onSurface, fontWeight: "700", textAlign: "center" },
+    fallbackSub: { color: theme.colors.onSurfaceVariant, textAlign: "center", lineHeight: 18 },
+    youtubeBtn: { marginTop: 8, backgroundColor: theme.colors.primaryContainer, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20 },
+    youtubeBtnText: { color: theme.colors.onPrimaryContainer, fontWeight: "700" },
 
-  // Lyrics
-  lyricsSection:   { width: "100%", marginBottom: 28 },
-  sectionHeader:   { fontFamily: "Courier New", fontSize: 16, fontWeight: "bold", color: "#5C3D2E", marginBottom: 8 },
-  lyricsText:      { fontFamily: "Courier New", fontSize: 14, color: "#5C3D2E", lineHeight: 24 },
-  errorText:       { fontFamily: "Courier New", fontSize: 14, color: "#B94A48" },
+    lyricsSection: { width: "100%", marginBottom: 28 },
+    sectionHeader: { color: theme.colors.onBackground, fontWeight: "700", marginBottom: 8 },
+    lyricsText: { color: theme.colors.onSurface, fontFamily: "Nunito_400Regular", fontSize: 14, lineHeight: 24 },
+    errorText: { color: theme.colors.error },
 
-  // Synced lyrics
-  syncedScroll:      { height: 320 },
-  lyricLineWrapper:  { paddingVertical: 6, paddingHorizontal: 4 },
-  lyricLine:         { fontFamily: "Courier New", fontSize: 15, color: "#C4A882", lineHeight: 22 },
-  lyricLineActive:   { color: "#5C3D2E", fontSize: 17, fontWeight: "bold" },
+    syncedScroll: { height: 320 },
+    lyricLineWrapper: { paddingVertical: 6, paddingHorizontal: 4 },
+    lyricLine: { color: theme.colors.onSurfaceVariant, fontFamily: "Nunito_400Regular", fontSize: 15, lineHeight: 22, opacity: 0.6 },
+    lyricLineActive: { color: theme.colors.onSurface, fontFamily: "Nunito_700Bold", fontSize: 17, opacity: 1 },
 
-  // Tappable vocabulary words
-  vocabWord: { textDecorationLine: "underline" },
-  definitionBubble: {
-    position: "absolute", maxWidth: 160,
-    backgroundColor: "#FFF3E0", borderRadius: 10, borderWidth: 1, borderColor: "#E8D5C0",
-    paddingHorizontal: 12, paddingVertical: 8,
-    shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 4,
-  },
-  definitionWord: { fontFamily: "Courier New", fontSize: 12, fontWeight: "700", color: "#5C3D2E", marginBottom: 2 },
-  definitionText: { fontFamily: "Courier New", fontSize: 12, color: "#5C3D2E" },
+    vocabWord: { color: theme.colors.primary, fontFamily: "Nunito_700Bold", textDecorationLine: "underline" },
+    definitionBubble: {
+      position: "absolute",
+      maxWidth: 160,
+      backgroundColor: theme.colors.surfaceVariant,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: theme.colors.outlineVariant,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      elevation: 4,
+    },
+    definitionWord: { color: theme.colors.onSurface, fontFamily: "Nunito_700Bold", fontSize: 12, marginBottom: 2 },
+    definitionText: { color: theme.colors.onSurface, fontFamily: "Nunito_400Regular", fontSize: 12 },
 
-  // Flashcards
-  flashcardsSection: { width: "100%", marginBottom: 28 },
-  sectionSubheader:  { fontFamily: "Courier New", fontSize: 12, color: "#8B6347", marginBottom: 16 },
-  carouselRow:       { flexDirection: "row", alignItems: "center", gap: 8 },
-  arrowBtn:          { width: 36, height: 36, alignItems: "center", justifyContent: "center", backgroundColor: "#E8C5A0", borderRadius: 18 },
-  arrowBtnDisabled:  { opacity: 0.3 },
-  arrowText:         { fontSize: 24, color: "#5C3D2E", lineHeight: 28 },
-  cardWrapper:       { flex: 1, height: 140 },
-  flashCard: {
-    position: "absolute", width: "100%", height: "100%", borderRadius: 12,
-    alignItems: "center", justifyContent: "center", backfaceVisibility: "hidden",
-    shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 4, shadowOffset: { width: 0, height: 2 },
-    elevation: 2, padding: 12,
-  },
-  flashCardBack:       { position: "absolute" },
-  flashCardWord:       { fontFamily: "Courier New", fontSize: 18, fontWeight: "bold", color: "#5C3D2E", textAlign: "center" },
-  flashCardHint:       { fontFamily: "Courier New", fontSize: 10, color: "#8B6347", marginTop: 6 },
-  flashCardDefinition: { fontFamily: "Courier New", fontSize: 15, color: "#5C3D2E", textAlign: "center", fontStyle: "italic" },
+    flashcardsSection: { width: "100%", marginBottom: 28 },
 
-  notFound: { fontFamily: "Courier New", fontSize: 16, color: "#5C3D2E", padding: 24 },
-});
+    notFound: { color: theme.colors.onSurface, padding: 24 },
+  });

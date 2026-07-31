@@ -1,30 +1,32 @@
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Linking, StyleSheet, View } from "react-native";
+import { List, Text } from "react-native-paper";
+import { AppScaffold } from "../components/AppScaffold";
+import { useAppTheme } from "../constants/theme";
 
 export default function ResourcesScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Helpful Resources</Text>
+  const theme = useAppTheme();
 
-      <Pressable onPress={() => Linking.openURL('https://www.spanishdict.com/')}>
-        <Text style={styles.buttonText}>English-Spanish Dictionary</Text>
-      </Pressable>
-    </View>
+  return (
+    <AppScaffold title="Helpful Resources" back>
+      <View style={styles.container}>
+        <List.Item
+          title="English–Spanish Dictionary"
+          description="SpanishDict.com"
+          left={(props) => <MaterialCommunityIcons {...props} name="book-alphabet" size={26} color={theme.colors.primary} />}
+          right={(props) => <MaterialCommunityIcons {...props} name="open-in-new" size={22} color={theme.colors.onSurfaceVariant} />}
+          onPress={() => Linking.openURL("https://www.spanishdict.com/")}
+          style={[styles.item, { backgroundColor: theme.colors.surfaceVariant }]}
+        />
+        <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginTop: 16, paddingHorizontal: 4 }}>
+          More resources coming soon.
+        </Text>
+      </View>
+    </AppScaffold>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#008000',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-  },
-  text: {
-    color: '#f1ee8e',
-  },
-  pressable: {
-    color: '#ADD8E6',
-  },
-  buttonText: {
-    color: '#000000',
-  },
+  container: { paddingHorizontal: 16, paddingTop: 8 },
+  item: { borderRadius: 16 },
 });

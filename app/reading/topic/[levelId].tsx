@@ -1,13 +1,17 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
+import { Text } from "react-native-paper";
+import { AppScaffold } from "../../../components/AppScaffold";
 import { QuestionCard } from "../../../components/QuestionCards";
+import { useAppTheme } from "../../../constants/theme";
 import { useSupabaseAuth } from "../../../context/SupabaseAuth";
 import { getLessonId, getLessonQuestions } from "../../../data/lessonQuestions";
 import { logActivity } from "../../../Supabase/services/activityHistory";
 
 export default function TopicPracticeScreen() {
   const router = useRouter();
+  const theme = useAppTheme();
   const { user } = useSupabaseAuth();
   const { levelId, topic, label } = useLocalSearchParams<{ levelId: string; topic: string; label: string }>();
 
@@ -38,41 +42,26 @@ export default function TopicPracticeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <Pressable style={styles.backBtn} onPress={handleExit}>
-        <Text style={styles.backBtnText}>← back</Text>
-      </Pressable>
-
+    <AppScaffold title={label ?? topic} back onBack={handleExit}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>{label ?? topic}</Text>
-        <Text style={styles.subtitle}>{topic}</Text>
+        <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 20 }}>
+          {topic}
+        </Text>
 
         {questions && questions.length > 0 ? (
           questions.map((q, i) => (
             <QuestionCard key={i} question={q} onAnswered={(correct) => handleAnswered(i, correct)} />
           ))
         ) : (
-          <Text style={styles.errorText}>No practice questions available for this topic yet.</Text>
+          <Text variant="bodyMedium" style={{ color: theme.colors.error, textAlign: "center", marginTop: 20 }}>
+            No practice questions available for this topic yet.
+          </Text>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </AppScaffold>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#FDF6EC" },
-  backBtn: {
-    alignSelf: "flex-start",
-    backgroundColor: "#E8C5A0",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginHorizontal: 20,
-    marginTop: 16,
-  },
-  backBtnText: { fontFamily: "Courier New", fontSize: 14, color: "#5C3D2E" },
-  container: { padding: 24, paddingBottom: 48 },
-  title: { fontFamily: "Courier New", fontSize: 22, fontWeight: "bold", color: "#5C3D2E" },
-  subtitle: { fontFamily: "Courier New", fontSize: 14, color: "#8B6347", marginBottom: 20 },
-  errorText: { fontFamily: "Courier New", fontSize: 14, color: "#B94A48", textAlign: "center", marginTop: 20 },
+  container: { padding: 20, paddingBottom: 48 },
 });

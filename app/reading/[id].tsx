@@ -1,15 +1,10 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, SegmentedButtons, Text } from "react-native-paper";
+import { AppScaffold } from "../../components/AppScaffold";
 import { QuestionCard } from "../../components/QuestionCards";
+import { useAppTheme } from "../../constants/theme";
 import { SONGS } from "../../data/songs";
 import vocab from "../../data/vocabulary.json";
 import { generateQuestions, Question } from "../../Supabase/services/questions";
@@ -17,7 +12,7 @@ import { generateQuestions, Question } from "../../Supabase/services/questions";
 type Mode = "reading" | "writing";
 
 export default function ReadingWritingPracticeScreen() {
-  const router = useRouter();
+  const theme = useAppTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const song = SONGS.find((s) => s.id === id);
 
@@ -28,99 +23,79 @@ export default function ReadingWritingPracticeScreen() {
 
   if (!song) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <Text style={styles.notFound}>Song not found.</Text>
-      </SafeAreaView>
+      <AppScaffold title="Reading & Writing" back>
+        <Text variant="titleMedium" style={{ color: theme.colors.onSurface, padding: 24 }}>
+          Song not found.
+        </Text>
+      </AppScaffold>
     );
   }
 
   const words = Object.keys((vocab as Record<string, Record<string, string>>)[song.name] ?? {});
 
   async function handleGenerate(nextMode: Mode) {
-    // console.log("[reading] button pressed, mode:", nextMode);
     setMode(nextMode);
     setQuestions(null);
     setError(null);
     setLoading(true);
-    // console.log("[reading] song:", song!.name, "words:", words);
     try {
-      // console.log("[reading] calling generateQuestions...");
       const result = await generateQuestions(song!.name, words, nextMode);
-      // console.log("[reading] generateQuestions succeeded, questions:", result);
       setQuestions(result);
     } catch (e: any) {
-      // console.error("[reading] generateQuestions threw:", e);
       setError(e.message ?? "Could not generate questions.");
     } finally {
-      // console.log("[reading] done, loading=false");
       setLoading(false);
     }
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.topBar}>
-        <Pressable style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={styles.backBtnText}>← back</Text>
-        </Pressable>
-      </View>
-
+    <AppScaffold title={song.name} back>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.songName}>{song.name}</Text>
-        <Text style={styles.songArtist}>{song.artist}</Text>
+        <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 20 }}>
+          {song.artist}
+        </Text>
 
         {words.length === 0 ? (
-          <Text style={styles.errorText}>No vocabulary available for this song yet.</Text>
+          <Text variant="bodyMedium" style={{ color: theme.colors.error, textAlign: "center", marginTop: 20 }}>
+            No vocabulary available for this song yet.
+          </Text>
         ) : (
           <>
-            <View style={styles.modeRow}>
-              <Pressable
-                style={[styles.modeBtn, mode === "reading" && styles.modeBtnActive]}
-                onPress={() => handleGenerate("reading")}
-              >
-                <Text style={styles.modeBtnText}>Reading</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.modeBtn, mode === "writing" && styles.modeBtnActive]}
-                onPress={() => handleGenerate("writing")}
-              >
-                <Text style={styles.modeBtnText}>Writing</Text>
-              </Pressable>
-            </View>
+            <SegmentedButtons
+              value={mode}
+              onValueChange={(v) => handleGenerate(v as Mode)}
+              buttons={[
+                { value: "reading", label: "Reading", icon: "book-open-variant" },
+                { value: "writing", label: "Writing", icon: "pencil" },
+              ]}
+              style={styles.modeRow}
+            />
 
             {loading ? (
-              <ActivityIndicator color="#5C3D2E" style={styles.spinner} />
+              <ActivityIndicator color={theme.colors.primary} style={styles.spinner} />
             ) : error ? (
-              <Text style={styles.errorText}>{error}</Text>
+              <Text variant="bodyMedium" style={{ color: theme.colors.error, textAlign: "center", marginTop: 20 }}>
+                {error}
+              </Text>
             ) : questions ? (
               questions.map((q, i) => <QuestionCard key={i} question={q} />)
             ) : (
-              <Text style={styles.hintText}>Pick Reading or Writing to generate practice questions.</Text>
+              <View style={styles.hint}>
+                <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, textAlign: "center" }}>
+                  Pick Reading or Writing to generate practice questions.
+                </Text>
+              </View>
             )}
           </>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </AppScaffold>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#FDF6EC" },
-  topBar: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
-  backBtn: { alignSelf: "flex-start", backgroundColor: "#E8C5A0", paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
-  backBtnText: { fontFamily: "Courier New", fontSize: 14, color: "#5C3D2E" },
-  container: { padding: 24, paddingBottom: 48 },
-  songName: { fontFamily: "Courier New", fontSize: 22, fontWeight: "bold", color: "#5C3D2E" },
-  songArtist: { fontFamily: "Courier New", fontSize: 15, color: "#8B6347", marginBottom: 20 },
-
-  modeRow: { flexDirection: "row", gap: 10, marginBottom: 20 },
-  modeBtn: { flex: 1, alignItems: "center", paddingVertical: 12, borderRadius: 20, backgroundColor: "#FFF3E0" },
-  modeBtnActive: { backgroundColor: "#E8C5A0" },
-  modeBtnText: { fontFamily: "Courier New", fontSize: 14, fontWeight: "600", color: "#5C3D2E" },
-
+  container: { padding: 20, paddingBottom: 48 },
+  modeRow: { marginBottom: 20 },
   spinner: { marginTop: 20 },
-  hintText: { fontFamily: "Courier New", fontSize: 13, color: "#8B6347", textAlign: "center", marginTop: 20 },
-  errorText: { fontFamily: "Courier New", fontSize: 14, color: "#B94A48", textAlign: "center", marginTop: 20 },
-
-  notFound: { fontFamily: "Courier New", fontSize: 16, color: "#5C3D2E", padding: 24 },
+  hint: { marginTop: 20 },
 });
