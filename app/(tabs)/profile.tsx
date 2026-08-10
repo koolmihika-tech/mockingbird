@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Appbar, Avatar, Button, Card, Chip, ProgressBar, Surface, Text } from "react-native-paper";
 import { AppScaffold } from "../../components/AppScaffold";
+import { MasteryDial } from "../../components/MasteryDial";
 import { useAppTheme, withAlpha } from "../../constants/theme";
 import { useSupabaseAuth } from "../../context/SupabaseAuth";
 import { fetchUserGenres, type Genre } from "../../Supabase/services/genres";
 import { fetchUserLevel, type Level } from "../../Supabase/services/levels";
+import { fetchTopicMastery, type TopicMastery } from "../../Supabase/services/mastery";
 import { getLoginStreak } from "../../Supabase/services/streak";
 
 export default function ProfileScreen() {
@@ -17,18 +19,24 @@ export default function ProfileScreen() {
   const [level, setLevel] = useState<Level | null>(null);
   const [genres, setGenres] = useState<Genre[]>([]);
   const [streak, setStreak] = useState<number | null>(null);
+  const [mastery, setMastery] = useState<TopicMastery[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
+      setLevel(null);
+      setGenres([]);
+      setStreak(null);
+      setMastery([]);
       setLoading(false);
       return;
     }
-    Promise.all([fetchUserLevel(user.id), fetchUserGenres(user.id), getLoginStreak(user.id)])
-      .then(([levelData, genreData, streakData]) => {
+    Promise.all([fetchUserLevel(user.id), fetchUserGenres(user.id), getLoginStreak(user.id), fetchTopicMastery(user.id)])
+      .then(([levelData, genreData, streakData, masteryData]) => {
         setLevel(levelData);
         setGenres(genreData);
         setStreak(streakData);
+        setMastery(masteryData);
       })
       .catch(() => Alert.alert("Error", "Could not load your profile."))
       .finally(() => setLoading(false));
@@ -55,7 +63,7 @@ export default function ProfileScreen() {
               {displayName}
             </Text>
             <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-              {level ? `Level ${level.level_name}` : "Level not set"}
+              {level ? `Level ${level.level_name}` : user ? "Level not set" : "—"}
             </Text>
           </View>
 
@@ -83,6 +91,31 @@ export default function ProfileScreen() {
             </Card.Content>
           </Card>
 
+          {/* Mastery */}
+          <Text variant="titleMedium" style={[styles.sectionLabel, { color: theme.colors.onBackground }]}>
+            Mastery
+          </Text>
+          {mastery.length > 0 ? (
+            <View style={styles.masteryWrap}>
+              {mastery.map((topic) => (
+                <MasteryDial
+                  key={topic.focusArea}
+                  topic={topic.focusArea}
+                  accuracy={topic.accuracy}
+                  onPressDetails={() =>
+                    router.push({ pathname: "/mastery/[focusArea]", params: { focusArea: topic.focusArea } } as any)
+                  }
+                />
+              ))}
+            </View>
+          ) : (
+            <Surface style={[styles.emptyCard, { backgroundColor: theme.colors.surfaceVariant }]} elevation={0}>
+              <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                {user ? "Complete a lesson to start tracking your mastery." : "—"}
+              </Text>
+            </Surface>
+          )}
+
           {/* Genre preferences */}
           <Text variant="titleMedium" style={[styles.sectionLabel, { color: theme.colors.onBackground }]}>
             Genre preferences
@@ -98,7 +131,7 @@ export default function ProfileScreen() {
           ) : (
             <Surface style={[styles.emptyCard, { backgroundColor: theme.colors.surfaceVariant }]} elevation={0}>
               <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-                Not set yet — tap edit to choose your favorites.
+                {user ? "Not set yet — tap edit to choose your favorites." : "—"}
               </Text>
             </Surface>
           )}
@@ -121,6 +154,7 @@ const styles = StyleSheet.create({
   streakIcon: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   progressBar: { height: 10, borderRadius: 8 },
   sectionLabel: { marginTop: 28, marginBottom: 12 },
+  masteryWrap: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 16 },
   chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   chip: {},
   emptyCard: { borderRadius: 16, padding: 16 },

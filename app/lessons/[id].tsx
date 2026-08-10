@@ -11,7 +11,7 @@ import { generateQuestions, Question } from "../../Supabase/services/questions";
 
 type Mode = "reading" | "writing";
 
-export default function ReadingWritingPracticeScreen() {
+export default function LessonPracticeScreen() {
   const theme = useAppTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const song = SONGS.find((s) => s.id === id);
@@ -23,7 +23,7 @@ export default function ReadingWritingPracticeScreen() {
 
   if (!song) {
     return (
-      <AppScaffold title="Reading & Writing" back>
+      <AppScaffold title="Lessons" back>
         <Text variant="titleMedium" style={{ color: theme.colors.onSurface, padding: 24 }}>
           Song not found.
         </Text>

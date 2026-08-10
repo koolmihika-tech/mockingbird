@@ -27,7 +27,7 @@ export const PASSING_SCORE = 70;
 
 // Set of lesson ids (user_activity_history.activity_id for activity_type
 // 'lesson') the user has *passed* — used to mark goal boxes as done in the
-// reading/writing path. Every attempt is still logged; only attempts scoring at
+// lessons path. Every attempt is still logged; only attempts scoring at
 // least PASSING_SCORE count as complete, and one passing attempt is enough.
 export async function fetchCompletedLessonIds(userId: string): Promise<Set<string>> {
   const { data, error } = await supabase

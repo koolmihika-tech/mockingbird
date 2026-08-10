@@ -9,7 +9,7 @@ import { SONGS } from "../../data/songs";
 type Icon = keyof typeof MaterialCommunityIcons.glyphMap;
 type Tone = "primary" | "tertiary" | "secondary" | "streak";
 const DECKS: { label: string; sub: string; route: string; icon: Icon; tone: Tone }[] = [
-  { label: "Reading & Writing", sub: "Flashcards from your songs", route: "/reading/writing", icon: "book-open-variant", tone: "primary" },
+  { label: "Lessons", sub: "Flashcards from your songs", route: "/lessons", icon: "book-open-variant", tone: "primary" },
   { label: "Listening", sub: "Tune your ear", route: "/listening", icon: "headphones", tone: "secondary" },
   { label: "Speaking", sub: "Say it out loud", route: "/speaking", icon: "microphone-variant", tone: "streak" },
 ];
@@ -52,7 +52,7 @@ export default function PracticeScreen() {
                 <Text variant="bodyMedium" style={{ color: theme.colors.onPrimaryContainer, opacity: 0.85, marginTop: 4 }}>
                   Learn new words from the songs you love.
                 </Text>
-                <Button mode="contained-tonal" icon="play" onPress={() => router.push("/reading/writing")} style={styles.heroBtn}>
+                <Button mode="contained-tonal" icon="play" onPress={() => router.push("/lessons")} style={styles.heroBtn}>
                   Start
                 </Button>
               </View>
@@ -92,7 +92,7 @@ export default function PracticeScreen() {
           {SONGS.filter((s) => !s.displayName).map((song) => (
             <TouchableRipple
               key={song.id}
-              onPress={() => router.push(`/reading/${song.id}` as any)}
+              onPress={() => router.push(`/lessons/${song.id}` as any)}
               style={styles.songTile}
               borderless
             >

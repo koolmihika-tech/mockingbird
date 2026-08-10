@@ -13,7 +13,7 @@ type SectionIcon = keyof typeof MaterialCommunityIcons.glyphMap;
 type Tone = "primary" | "tertiary" | "secondary" | "streak";
 const SECTIONS: { label: string; route: string; icon: SectionIcon; tone: Tone }[] = [
   { label: "Songs", route: "/songs", icon: "music-clef-treble", tone: "primary" },
-  { label: "Reading/Writing", route: "/reading/writing", icon: "book-open-variant", tone: "tertiary" },
+  { label: "Lessons", route: "/lessons", icon: "book-open-variant", tone: "tertiary" },
   { label: "Listening", route: "/listening", icon: "headphones", tone: "secondary" },
   { label: "Speaking", route: "/speaking", icon: "microphone-variant", tone: "streak" },
 ];

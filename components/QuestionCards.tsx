@@ -59,8 +59,22 @@ export function MultipleChoiceCard({
   );
 }
 
+// Case/whitespace/accent-insensitive comparison — typing accents is
+// inconvenient on most keyboards, so "esta noche" should match "está noche".
+// Fill-in-the-blank answers must not depend on an accent to be correct (a
+// distinct word an accent away, e.g. tu/tú, should be multiple_choice
+// instead — see data/lessonQuestions.ts), so stripping accents here can't
+// turn a wrong answer into a right one.
+function normalizeAnswer(s: string): string {
+  return s
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(new RegExp("[\\u0300-\\u036f]", "g"), "");
+}
+
 // Fill-in-the-blank: user types an answer and it's checked against the
-// expected answer (case/whitespace-insensitive).
+// expected answer (case/whitespace/accent-insensitive).
 export function FillBlankCard({
   question,
   onAnswered,
@@ -71,7 +85,7 @@ export function FillBlankCard({
   const theme = useAppTheme();
   const [value, setValue] = useState("");
   const [checked, setChecked] = useState(false);
-  const isCorrect = value.trim().toLowerCase() === question.answer.trim().toLowerCase();
+  const isCorrect = normalizeAnswer(value) === normalizeAnswer(question.answer);
 
   function handleCheck() {
     setChecked(true);
@@ -110,10 +124,22 @@ export function FillBlankCard({
 }
 
 // Free-production writing prompts aren't auto-gradable, so they're always
-// counted as correct for scoring purposes.
-export function ShortAnswerCard({ question }: { question: Question }) {
+// counted as correct for scoring purposes. onAnswered still fires on reveal
+// (with correct=true) so callers can time how long the learner spent on it.
+export function ShortAnswerCard({
+  question,
+  onAnswered,
+}: {
+  question: Question;
+  onAnswered?: (correct: boolean) => void;
+}) {
   const theme = useAppTheme();
   const [revealed, setRevealed] = useState(false);
+
+  function handleReveal() {
+    setRevealed(true);
+    onAnswered?.(true);
+  }
 
   return (
     <Card mode="contained" style={[styles.card, { backgroundColor: theme.colors.surfaceVariant }]}>
@@ -129,7 +155,7 @@ export function ShortAnswerCard({ question }: { question: Question }) {
             {question.answer}
           </Text>
         ) : (
-          <Button mode="contained-tonal" onPress={() => setRevealed(true)} style={styles.actionBtn}>
+          <Button mode="contained-tonal" onPress={handleReveal} style={styles.actionBtn}>
             Reveal sample answer
           </Button>
         )}
@@ -151,7 +177,7 @@ export function QuestionCard({
   if (question.type === "fill_blank") {
     return <FillBlankCard question={question} onAnswered={onAnswered} />;
   }
-  return <ShortAnswerCard question={question} />;
+  return <ShortAnswerCard question={question} onAnswered={onAnswered} />;
 }
 
 const styles = StyleSheet.create({

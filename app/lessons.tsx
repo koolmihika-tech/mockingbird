@@ -2,18 +2,17 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { ActivityIndicator, Surface, Text } from "react-native-paper";
-import { AppScaffold } from "../../components/AppScaffold";
-import { useAppTheme, type AppTheme } from "../../constants/theme";
-import { useSupabaseAuth } from "../../context/SupabaseAuth";
-import { getLessonId } from "../../data/lessonQuestions";
-import { SONGS } from "../../data/songs";
-import { fetchCompletedLessonIds } from "../../Supabase/services/activityHistory";
-import { fetchAllLevelTopics, fetchUserLevel, type Level, type LevelTopic } from "../../Supabase/services/levels";
+import { ActivityIndicator, Text } from "react-native-paper";
+import { AppScaffold } from "../components/AppScaffold";
+import { useAppTheme, type AppTheme } from "../constants/theme";
+import { useSupabaseAuth } from "../context/SupabaseAuth";
+import { getLessonId } from "../data/lessonQuestions";
+import { fetchCompletedLessonIds } from "../Supabase/services/activityHistory";
+import { fetchAllLevelTopics, fetchUserLevel, type Level, type LevelTopic } from "../Supabase/services/levels";
 
 type PathBox = { key: string; label: string; topic?: LevelTopic };
 
-export default function ReadingWritingScreen() {
+export default function LessonsScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const styles = makeStyles(theme);
@@ -72,7 +71,7 @@ export default function ReadingWritingScreen() {
   }
 
   return (
-    <AppScaffold title="Reading & Writing" back>
+    <AppScaffold title="Lessons" back>
       {loading ? (
         <ActivityIndicator color={theme.colors.primary} style={styles.spinner} />
       ) : error ? (
@@ -81,27 +80,6 @@ export default function ReadingWritingScreen() {
         </Text>
       ) : (
         <ScrollView contentContainerStyle={styles.container}>
-          <View style={styles.carouselSection}>
-            <Text variant="titleMedium" style={styles.carouselLabel}>
-              Choose a song to begin
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carouselContent}>
-              {SONGS.map((song) => (
-                <Pressable key={song.id} style={styles.songTile} onPress={() => router.push(`/reading/${song.id}` as any)}>
-                  <Surface style={[styles.songCover, { backgroundColor: song.coverColor }]} elevation={2}>
-                    <MaterialCommunityIcons name="music" size={30} color="#3B2A1F" />
-                  </Surface>
-                  <Text variant="labelMedium" numberOfLines={1} style={styles.songTileName}>
-                    {song.displayName ?? song.name}
-                  </Text>
-                  <Text variant="bodySmall" numberOfLines={1} style={styles.songTileArtist}>
-                    {song.displayName ? "—" : song.artist}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-
           {levels.map(([levelName, topics]) => {
             const boxes: PathBox[] = [
               ...topics.slice(0, 4).map((t) => ({ key: t.level_id, label: t.goal ?? t.topics, topic: t })),
@@ -129,7 +107,7 @@ export default function ReadingWritingScreen() {
                             onPress={() =>
                               box.topic &&
                               router.push({
-                                pathname: "/reading/topic/[levelId]",
+                                pathname: "/lessons/topic/[levelId]",
                                 params: { levelId: box.topic.level_id, topic: box.topic.topics, label: box.label },
                               } as any)
                             }
@@ -141,20 +119,28 @@ export default function ReadingWritingScreen() {
                               {box.label}
                             </Text>
                           </Pressable>
-                          {/* Goal completion: grey until the lesson is logged, then green */}
-                          {!isUnitTest && (
-                            <MaterialCommunityIcons
-                              name={complete ? "check-circle" : "check-circle-outline"}
-                              size={24}
-                              color={complete ? theme.colors.success : theme.colors.outline}
-                              style={styles.checkIcon}
-                              accessibilityLabel={complete ? `${box.label} completed` : `${box.label} not completed`}
-                            />
-                          )}
+                          {/* Goal completion: grey until the lesson is logged, then green.
+                              Positioned outside the row's flow (absolute) so it never shifts
+                              the box itself off-center — box, arrow, and next box all line up. */}
+                          <View style={styles.checkIconSlot}>
+                            {!isUnitTest && (
+                              <MaterialCommunityIcons
+                                name={complete ? "check-circle" : "check-circle-outline"}
+                                size={24}
+                                color={complete ? theme.colors.success : theme.colors.outline}
+                                accessibilityLabel={complete ? `${box.label} completed` : `${box.label} not completed`}
+                              />
+                            )}
+                          </View>
                         </View>
-                        {/* Arrows connect the goals only — none before the Unit Test */}
-                        {i < boxes.length - 2 && (
-                          <MaterialCommunityIcons name="chevron-down" size={22} color={theme.colors.onSurfaceVariant} />
+                        {/* Arrows connect the goals only — the gap before Unit Test keeps the
+                            same spacing but with no arrow, since it doesn't lead into another goal. */}
+                        {i < boxes.length - 1 && (
+                          <View style={styles.arrowSlot}>
+                            {i < boxes.length - 2 && (
+                              <MaterialCommunityIcons name="chevron-down" size={22} color={theme.colors.onSurfaceVariant} />
+                            )}
+                          </View>
                         )}
                       </View>
                     );
@@ -174,20 +160,26 @@ const makeStyles = (theme: AppTheme) =>
     spinner: { marginTop: 40 },
     errorText: { color: theme.colors.error, textAlign: "center", marginTop: 40 },
     container: { padding: 24, paddingBottom: 48 },
-    carouselSection: { marginHorizontal: -24, paddingBottom: 8, marginBottom: 24 },
-    carouselLabel: { color: theme.colors.onBackground, fontWeight: "700", paddingHorizontal: 24, marginBottom: 12 },
-    carouselContent: { paddingHorizontal: 24, gap: 16 },
-    songTile: { width: 108, alignItems: "center" },
-    songCover: { width: 96, height: 96, borderRadius: 20, alignItems: "center", justifyContent: "center", marginBottom: 6 },
-    songTileName: { color: theme.colors.onBackground, textAlign: "center", width: 96 },
-    songTileArtist: { color: theme.colors.onSurfaceVariant, textAlign: "center", width: 96, marginTop: 2 },
     levelSection: { marginBottom: 32 },
     levelHeading: { color: theme.colors.onBackground, fontWeight: "800", marginBottom: 16 },
     lockedHeading: { color: theme.colors.onSurfaceVariant, opacity: 0.6 },
     path: { alignItems: "center" },
     pathItem: { alignItems: "center" },
-    boxRow: { flexDirection: "row", alignItems: "center" },
-    checkIcon: { marginLeft: 10 },
+    // Position: relative so checkIconSlot can float outside the box without
+    // widening boxRow — that keeps boxRow's width equal to the box's own
+    // width, so it (and the arrow below it) center correctly on the box.
+    boxRow: { position: "relative" },
+    checkIconSlot: {
+      position: "absolute",
+      left: "100%",
+      top: 0,
+      bottom: 0,
+      marginLeft: 10,
+      width: 24,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    arrowSlot: { height: 22, width: 22, alignItems: "center", justifyContent: "center" },
     box: {
       backgroundColor: theme.colors.surfaceVariant,
       borderWidth: 1,

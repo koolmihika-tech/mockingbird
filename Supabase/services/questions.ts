@@ -7,6 +7,10 @@ export interface Question {
   type: "multiple_choice" | "fill_blank" | "short_answer";
   options?: string[];
   answer: string;
+  // Tags the question as testing a grammar structure or a vocabulary word.
+  // Set on all static lesson-topic questions (see data/lessonQuestions.ts);
+  // optional because AI-generated song/topic questions don't set it.
+  category?: "grammar" | "vocab";
 }
 
 // Calls the "generate-questions" Supabase Edge Function, which holds the

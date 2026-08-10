@@ -11,8 +11,8 @@ import { generateQuestions, Question } from "../Supabase/services/questions";
 type Mode = "reading" | "writing";
 
 /** Dedicated single-mode practice screen for a song — same generateQuestions
- *  + QuestionCard framework used by the song tiles on the Reading & Writing
- *  tab (see app/reading/[id].tsx), just fixed to one mode instead of toggling. */
+ *  + QuestionCard framework used by the song tiles on the Lessons tab (see
+ *  app/lessons/[id].tsx), just fixed to one mode instead of toggling. */
 export function SongPracticeScreen({ songId, mode, title }: { songId: string; mode: Mode; title: string }) {
   const theme = useAppTheme();
   const song = SONGS.find((s) => s.id === songId);
