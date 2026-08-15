@@ -9,7 +9,7 @@ import { SONGS } from "../../data/songs";
 type Icon = keyof typeof MaterialCommunityIcons.glyphMap;
 type Tone = "primary" | "tertiary" | "secondary" | "streak";
 const DECKS: { label: string; sub: string; route: string; icon: Icon; tone: Tone }[] = [
-  { label: "Lessons", sub: "Flashcards from your songs", route: "/lessons", icon: "book-open-variant", tone: "primary" },
+  { label: "Reading & Writing", sub: "Flashcards from your songs", route: "/reading/writing", icon: "book-open-variant", tone: "primary" },
   { label: "Listening", sub: "Tune your ear", route: "/listening", icon: "headphones", tone: "secondary" },
   { label: "Speaking", sub: "Say it out loud", route: "/speaking", icon: "microphone-variant", tone: "streak" },
 ];
@@ -92,7 +92,7 @@ export default function PracticeScreen() {
           {SONGS.filter((s) => !s.displayName).map((song) => (
             <TouchableRipple
               key={song.id}
-              onPress={() => router.push(`/lessons/${song.id}` as any)}
+              onPress={() => router.push(`/reading/${song.id}` as any)}
               style={styles.songTile}
               borderless
             >
