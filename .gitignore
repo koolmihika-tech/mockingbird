@@ -37,6 +37,10 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# python (ml/)
+__pycache__/
+*.pyc
+
 app-example
 
 # generated native folders

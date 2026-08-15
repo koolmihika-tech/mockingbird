@@ -1,0 +1,16 @@
+{
+  "weights": {
+    "weakness": 0.32454117959971157,
+    "forgetting_decay": 1.1590107806643588,
+    "confidence": -0.7073105445718072,
+    "struggle_flag": 1.7133621339788039,
+    "intercept": -0.4737191677808573
+  },
+  "metrics": {
+    "train_rows": 134230,
+    "test_rows": 33964,
+    "test_accuracy": 0.7911023436579908,
+    "test_roc_auc": 0.7468898001951864,
+    "base_rate_incorrect": 0.7410311901732524
+  }
+}
