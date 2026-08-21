@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react";
+import { useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { ActivityIndicator, Button, Text } from "react-native-paper";
 import { AppScaffold } from "./AppScaffold";
 import { QuestionCard } from "./QuestionCards";
 import { useAppTheme } from "../constants/theme";
+import { useSupabaseAuth } from "../context/SupabaseAuth";
 import { SONGS } from "../data/songs";
 import vocab from "../data/vocabulary.json";
+import { logLessonHistory } from "../Supabase/services/lessonHistory";
 import { generateQuestions, Question } from "../Supabase/services/questions";
 
 type Mode = "reading" | "writing";
@@ -15,13 +18,33 @@ type Mode = "reading" | "writing";
  *  app/lessons/[id].tsx), just fixed to one mode instead of toggling. */
 export function SongPracticeScreen({ songId, mode, title }: { songId: string; mode: Mode; title: string }) {
   const theme = useAppTheme();
+  const router = useRouter();
+  const { user } = useSupabaseAuth();
   const song = SONGS.find((s) => s.id === songId);
 
   const [questions, setQuestions] = useState<Question[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // All song questions are vocab-word based (no grammar/vocab split like
+  // lesson-topic questions), so the whole session logs as one vocab attempt.
+  const [answers, setAnswers] = useState<boolean[]>([]);
+  const lastEventTimeRef = useRef(Date.now());
+  const vocabTimeMsRef = useRef(0);
+  const loggedRef = useRef(false);
+
   const words = song ? Object.keys((vocab as Record<string, Record<string, string>>)[song.name] ?? {}) : [];
+
+  function handleAnswered(index: number, correct: boolean) {
+    const now = Date.now();
+    vocabTimeMsRef.current += now - lastEventTimeRef.current;
+    lastEventTimeRef.current = now;
+    setAnswers((prev) => {
+      const next = [...prev];
+      next[index] = correct;
+      return next;
+    });
+  }
 
   async function handleGenerate() {
     if (!song) return;
@@ -31,11 +54,29 @@ export function SongPracticeScreen({ songId, mode, title }: { songId: string; mo
     try {
       const result = await generateQuestions(song.name, words, mode);
       setQuestions(result);
+      setAnswers([]);
+      vocabTimeMsRef.current = 0;
+      lastEventTimeRef.current = Date.now();
+      loggedRef.current = false;
     } catch (e: any) {
       setError(e.message ?? "Could not generate questions.");
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleExit() {
+    if (!loggedRef.current && user && song && questions && questions.length > 0 && answers.length > 0) {
+      loggedRef.current = true;
+      const correctCount = answers.filter((a) => a === true).length;
+      const score = Math.round((correctCount / questions.length) * 100);
+      await logLessonHistory(user.id, song.historyId, {
+        vocabTimeSec: Math.round(vocabTimeMsRef.current / 1000),
+        vocabAccuracy: score,
+        totalAccuracy: score,
+      });
+    }
+    router.back();
   }
 
   useEffect(() => {
@@ -54,7 +95,7 @@ export function SongPracticeScreen({ songId, mode, title }: { songId: string; mo
   }
 
   return (
-    <AppScaffold title={`${song.displayName ?? song.name} — ${title}`} back>
+    <AppScaffold title={`${song.displayName ?? song.name} — ${title}`} back onBack={handleExit}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 20 }}>
           {song.displayName ? song.name : song.artist}
@@ -78,7 +119,7 @@ export function SongPracticeScreen({ songId, mode, title }: { songId: string; mo
         ) : questions ? (
           <>
             {questions.map((q, i) => (
-              <QuestionCard key={i} question={q} />
+              <QuestionCard key={i} question={q} onAnswered={(correct) => handleAnswered(i, correct)} />
             ))}
             <Button mode="outlined" onPress={handleGenerate} style={styles.actionBtn}>
               New questions

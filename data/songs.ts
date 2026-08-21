@@ -1,5 +1,11 @@
 export interface Song {
   id: string;
+  // Fixed UUID used as lesson_history.lesson_id when logging song-practice
+  // sessions — deliberately not a real levels.level_id, so mastery.ts's
+  // join-by-level_id excludes these rows from the profile's topic-mastery
+  // dials while they remain fully visible to the ML feature pipeline, which
+  // reads lesson_history directly.
+  historyId: string;
   name: string;
   artist: string;
   coverColor: string;
@@ -12,6 +18,7 @@ export interface Song {
 export const SONGS: Song[] = [
   {
     id: "1",
+    historyId: "6a1e6b1a-0b1b-4b9e-9a5d-1f9c6e2a1a01",
     name: "Vivir Mi Vida",
     artist: "Marc Anthony",
     coverColor: "#E8C5A0",
@@ -27,6 +34,7 @@ export const SONGS: Song[] = [
   },
   {
     id: "2",
+    historyId: "6a1e6b1a-0b1b-4b9e-9a5d-1f9c6e2a1a02",
     name: "Me Gustas Tú",
     artist: "Mano Chao",
     coverColor: "#D4A9A9",
@@ -42,6 +50,7 @@ export const SONGS: Song[] = [
   },
   {
     id: "3",
+    historyId: "6a1e6b1a-0b1b-4b9e-9a5d-1f9c6e2a1a03",
     name: "Limón y Sal",
     artist: "Julieta Venegas",
     coverColor: "#B5C9A8",
@@ -57,9 +66,10 @@ export const SONGS: Song[] = [
   },
   {
     id: "4",
+    historyId: "6a1e6b1a-0b1b-4b9e-9a5d-1f9c6e2a1a04",
     name: "Mejor Que Ayer",
     artist: "Diego Torres",
-    coverColor: "#A9BFD4",    
+    coverColor: "#A9BFD4",
     level: "2",
     videoQueries: [
       "mejor que ayer diego torres",
@@ -72,6 +82,7 @@ export const SONGS: Song[] = [
   },
   {
     id: "5",
+    historyId: "6a1e6b1a-0b1b-4b9e-9a5d-1f9c6e2a1a05",
     name: "Robarte un Beso",
     artist: "Carlos Vives Sebastián Yatra",
     coverColor: "#C9B8D4",
@@ -87,6 +98,7 @@ export const SONGS: Song[] = [
   },
   {
     id: "6",
+    historyId: "6a1e6b1a-0b1b-4b9e-9a5d-1f9c6e2a1a06",
     name: "La Libertad",
     artist: "Álvaro Soler",
     coverColor: "#A8C9C0",
@@ -102,6 +114,7 @@ export const SONGS: Song[] = [
   },
   {
     id: "7",
+    historyId: "6a1e6b1a-0b1b-4b9e-9a5d-1f9c6e2a1a07",
     name: "Me Gustas Tú",
     artist: "Mano Chao",
     coverColor: "#D4C9A8",
@@ -117,6 +130,7 @@ export const SONGS: Song[] = [
   },
   {
     id: "8",
+    historyId: "6a1e6b1a-0b1b-4b9e-9a5d-1f9c6e2a1a08",
     name: "Despacito",
     artist: "Luis Fonsi",
     coverColor: "#C0A8C9",
@@ -132,6 +146,7 @@ export const SONGS: Song[] = [
   },
   {
     id: "9",
+    historyId: "6a1e6b1a-0b1b-4b9e-9a5d-1f9c6e2a1a09",
     name: "Bailando",
     artist: "Enrique Iglesias",
     coverColor: "#A8B5C9",
@@ -147,6 +162,7 @@ export const SONGS: Song[] = [
   },
   {
     id: "10",
+    historyId: "6a1e6b1a-0b1b-4b9e-9a5d-1f9c6e2a1a0a",
     name: "La Bicicleta",
     artist: "Carlos Vives Shakira",
     coverColor: "#C9A8A8",
