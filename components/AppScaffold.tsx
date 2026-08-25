@@ -11,20 +11,18 @@ export function AppScaffold({
   back,
   onBack,
   rightActions,
-  reversedHeader,
   children,
 }: {
   title?: string;
   back?: boolean;
   onBack?: () => void;
   rightActions?: ReactNode;
-  reversedHeader?: boolean;
   children: ReactNode;
 }) {
   const theme = useAppTheme();
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <AppHeader title={title} back={back} onBack={onBack} rightActions={rightActions} reversed={reversedHeader} />
+      <AppHeader title={title} back={back} onBack={onBack} rightActions={rightActions} />
       <View style={{ flex: 1 }}>{children}</View>
       <AppFooter />
     </View>

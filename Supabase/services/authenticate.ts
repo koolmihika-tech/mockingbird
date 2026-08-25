@@ -3,8 +3,8 @@ import { getQueryParams } from "expo-auth-session/build/QueryParams";
 import * as Crypto from "expo-crypto";
 import * as WebBrowser from "expo-web-browser";
 import { Alert } from "react-native";
-import { checkAndAwardBadges } from "./badges";
 import { supabase } from "../lib/supabase";
+import { checkAndAwardBadges } from "./badges";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -61,8 +61,8 @@ async function logSessionEnd() {
 export async function signUp(email: string, password: string) {
   const { data, error } = await supabase.auth.signUp({ email, password });
 
+  // Surfaced in-modal by the caller rather than via a native alert.
   if (error) {
-    Alert.alert("Sign Up Failed", error.message);
     throw error;
   }
 
@@ -83,12 +83,11 @@ export async function signIn(email: string, password: string) {
     password
   });
 
+  // A failed sign-in is an expected branch in the combined login/sign-up flow
+  // (it routes the user to sign-up), so we surface it through the returned
+  // error rather than a disruptive native alert. The caller handles messaging.
   if (error) {
-    Alert.alert("Login Failed", "Invalid email or password.");
     throw error;
-  }
-  else {
-    Alert.alert("Login Successful", "You have successfully logged in.");
   }
 
   if (data.user) {

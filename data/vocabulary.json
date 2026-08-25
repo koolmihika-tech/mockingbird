@@ -269,7 +269,7 @@
     "picaba": "it piqued", 
     "cayeron": "they have fallen",
     "allá": "there", 
-    "a": "to / at",
+    "a": "to",
     "parar": "to stop",
     "ir": "to go",
     "yo": "I",
@@ -280,7 +280,10 @@
     "acaba": "it ends",
     "esto": "this (masculine)",
     "esta": "this (feminine)",
-    "y": "and"
+    "y": "and", 
+    "mí": "me", 
+    "me": "to me", 
+    "da": "matters"
 
   },
   "Despacito": {

@@ -11,18 +11,22 @@ import { getLoginStreak } from "../../Supabase/services/streak";
 
 type SectionIcon = keyof typeof MaterialCommunityIcons.glyphMap;
 type Tone = "primary" | "tertiary" | "secondary" | "streak";
-const SECTIONS: { label: string; route: string; icon: SectionIcon; tone: Tone }[] = [
+const SECTIONS: { label: string; route: string; icon: SectionIcon; tone: Tone; comingSoon?: boolean }[] = [
   { label: "Songs", route: "/songs", icon: "music-clef-treble", tone: "primary" },
   { label: "Lessons", route: "/lessons", icon: "book-open-variant", tone: "tertiary" },
-  { label: "Listening", route: "/listening", icon: "headphones", tone: "secondary" },
-  { label: "Speaking", route: "/speaking", icon: "microphone-variant", tone: "streak" },
+  { label: "Listening", route: "/listening", icon: "headphones", tone: "secondary", comingSoon: true },
+  { label: "Speaking", route: "/speaking", icon: "microphone-variant", tone: "streak", comingSoon: true },
 ];
 
 export default function Home() {
   const router = useRouter();
   const theme = useAppTheme();
-  const { user, login, signup, loginWithGoogle, logout, isLoading, error: authError } = useSupabaseAuth();
-  const [modalMode, setModalMode] = useState<"login" | "signup" | null>(null);
+  const { user, login, signup, loginWithGoogle, logout, isLoading } = useSupabaseAuth();
+  // The auth modal starts by attempting a log in; if no account exists it flips
+  // to "signup" mode (see handleSubmit). `notice` carries the in-modal message.
+  const [modalOpen, setModalOpen] = useState(false);
+  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [notice, setNotice] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [streak, setStreak] = useState<number | null>(null);
@@ -37,24 +41,49 @@ export default function Home() {
       .catch(() => setStreak(null));
   }, [user]);
 
-  function openModal(mode: "login" | "signup") {
+  function openModal() {
     setEmail("");
     setPassword("");
-    setModalMode(mode);
+    setMode("login");
+    setNotice(null);
+    setModalOpen(true);
+  }
+
+  function closeModal() {
+    setModalOpen(false);
+    setNotice(null);
   }
 
   async function handleSubmit() {
-    if (modalMode === "login") {
-      await login(email, password);
+    setNotice(null);
+    if (mode === "login") {
+      // Try to log the user in first. If they already have an account, they're
+      // in. If not, flip to sign-up so they can create one with the same info.
+      const res = await login(email, password);
+      if (res.ok) {
+        closeModal();
+      } else {
+        setMode("signup");
+        setNotice("Account does not exist. Enter your details to sign up.");
+      }
     } else {
-      await signup(email, password);
+      const res = await signup(email, password);
+      if (res.ok) {
+        closeModal();
+      } else if (/already registered|already exists|user already/i.test(res.error ?? "")) {
+        // The email is actually taken — send them back to logging in.
+        setMode("login");
+        setNotice("An account already exists for this email. Please log in.");
+      } else {
+        setNotice(res.error ?? "Sign up failed");
+      }
     }
-    if (!authError) setModalMode(null);
   }
 
   async function handleGoogleSubmit() {
-    await loginWithGoogle();
-    if (!authError) setModalMode(null);
+    const res = await loginWithGoogle();
+    if (res.ok) closeModal();
+    else if (res.error) setNotice(res.error);
   }
 
   const displayName = user?.user_metadata?.display_name ?? null;
@@ -78,14 +107,11 @@ export default function Home() {
   const authActions = isLoading ? null : user ? (
     <Appbar.Action icon="logout" onPress={logout} accessibilityLabel="Log out" />
   ) : (
-    <>
-      <Appbar.Action icon="login" onPress={() => openModal("login")} accessibilityLabel="Log in" />
-      <Appbar.Action icon="account-plus" onPress={() => openModal("signup")} accessibilityLabel="Sign up" />
-    </>
+    <Appbar.Action icon="account-plus" onPress={openModal} accessibilityLabel="Log in or sign up" />
   );
 
   return (
-    <AppScaffold title="Mockingbird" rightActions={authActions} reversedHeader>
+    <AppScaffold title="Mockingbird" rightActions={authActions}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Hero greeting */}
         <Card mode="contained" style={[styles.hero, { backgroundColor: theme.colors.primaryContainer }]}>
@@ -142,29 +168,46 @@ export default function Home() {
           </Text>
         </View>
         <View style={styles.grid}>
-          {SECTIONS.map((section) => (
-            <Pressable key={section.label} style={styles.gridItem} onPress={() => router.push(section.route as any)}>
-              <Surface style={[styles.categoryCard, { backgroundColor: toneColor(section.tone) }]} elevation={0}>
+          {SECTIONS.map((section) => {
+            const card = (
+              <Surface
+                style={[styles.categoryCard, { backgroundColor: toneColor(section.tone) }, section.comingSoon && styles.comingSoonCard]}
+                elevation={0}
+              >
                 <MaterialCommunityIcons name={section.icon} size={28} color={onToneColor(section.tone)} />
                 <Text variant="titleSmall" style={{ color: onToneColor(section.tone), marginTop: 12 }}>
                   {section.label}
                 </Text>
+                {section.comingSoon && (
+                  <Text variant="labelSmall" style={{ color: onToneColor(section.tone), opacity: 0.9, marginTop: 2 }}>
+                    Coming soon
+                  </Text>
+                )}
               </Surface>
-            </Pressable>
-          ))}
+            );
+            return section.comingSoon ? (
+              <View key={section.label} style={styles.gridItem}>
+                {card}
+              </View>
+            ) : (
+              <Pressable key={section.label} style={styles.gridItem} onPress={() => router.push(section.route as any)}>
+                {card}
+              </Pressable>
+            );
+          })}
         </View>
       </ScrollView>
 
       {/* Login / Sign up modal */}
       <Portal>
         <Modal
-          visible={modalMode !== null}
-          onDismiss={() => setModalMode(null)}
+          visible={modalOpen}
+          onDismiss={closeModal}
           contentContainerStyle={[styles.modalBox, { backgroundColor: theme.colors.surface }]}
         >
           <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
             <Text variant="headlineSmall" style={{ color: theme.colors.onSurface, marginBottom: 12 }}>
-              {modalMode === "signup" ? "Sign up" : "Log in"}
+              {mode === "signup" ? "Sign up" : "Log in"}
             </Text>
             <TextInput
               mode="outlined"
@@ -183,18 +226,18 @@ export default function Home() {
               onChangeText={setPassword}
               style={styles.input}
             />
-            {authError && (
+            {notice && (
               <Text variant="bodySmall" style={{ color: theme.colors.error, marginBottom: 8 }}>
-                {authError}
+                {notice}
               </Text>
             )}
             <Button mode="contained" onPress={handleSubmit} loading={isLoading} disabled={isLoading} style={styles.modalBtn}>
-              {modalMode === "signup" ? "Sign up" : "Log in"}
+              {mode === "signup" ? "Sign up" : "Log in"}
             </Button>
             <Button mode="outlined" onPress={handleGoogleSubmit} disabled={isLoading} icon="google" style={styles.modalBtn}>
-              {modalMode === "signup" ? "Sign up with Google" : "Log in with Google"}
+              {mode === "signup" ? "Sign up with Google" : "Log in with Google"}
             </Button>
-            <Button mode="text" onPress={() => setModalMode(null)}>
+            <Button mode="text" onPress={closeModal}>
               Cancel
             </Button>
           </KeyboardAvoidingView>
@@ -244,6 +287,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     alignItems: "flex-start",
   },
+  comingSoonCard: { opacity: 0.6 },
   modalBox: { marginHorizontal: 24, borderRadius: 28, padding: 24 },
   input: { marginBottom: 12 },
   modalBtn: { marginBottom: 10 },

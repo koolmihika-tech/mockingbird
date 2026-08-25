@@ -8,10 +8,10 @@ import { SONGS } from "../../data/songs";
 
 type Icon = keyof typeof MaterialCommunityIcons.glyphMap;
 type Tone = "primary" | "tertiary" | "secondary" | "streak";
-const DECKS: { label: string; sub: string; route: string; icon: Icon; tone: Tone }[] = [
-  { label: "Reading & Writing", sub: "Flashcards from your songs", route: "/reading/writing", icon: "book-open-variant", tone: "primary" },
-  { label: "Listening", sub: "Tune your ear", route: "/listening", icon: "headphones", tone: "secondary" },
-  { label: "Speaking", sub: "Say it out loud", route: "/speaking", icon: "microphone-variant", tone: "streak" },
+const DECKS: { label: string; sub: string; route: string; icon: Icon; tone: Tone; comingSoon?: boolean }[] = [
+  { label: "Reading & Writing", sub: "Flashcards from your songs", route: "/lessons", icon: "book-open-variant", tone: "primary" },
+  { label: "Listening", sub: "Tune your ear", route: "/listening", icon: "headphones", tone: "secondary", comingSoon: true },
+  { label: "Speaking", sub: "Say it out loud", route: "/speaking", icon: "microphone-variant", tone: "streak", comingSoon: true },
 ];
 
 export default function PracticeScreen() {
@@ -63,26 +63,40 @@ export default function PracticeScreen() {
 
         {/* Decks */}
         <Text variant="titleMedium" style={[styles.sectionLabel, { color: theme.colors.onBackground }]}>
-          Practice decks
+          Practice Pathways
         </Text>
-        {DECKS.map((deck) => (
-          <Surface key={deck.label} elevation={0} style={[styles.deck, { backgroundColor: toneColor(deck.tone) }]}>
-            <TouchableRipple onPress={() => router.push(deck.route as any)} style={styles.deckRipple}>
-              <View style={styles.deckInner}>
-                <MaterialCommunityIcons name={deck.icon} size={26} color={onToneColor(deck.tone)} />
-                <View style={{ flex: 1 }}>
-                  <Text variant="titleSmall" style={{ color: onToneColor(deck.tone) }}>
-                    {deck.label}
-                  </Text>
-                  <Text variant="bodySmall" style={{ color: onToneColor(deck.tone), opacity: 0.85 }}>
-                    {deck.sub}
-                  </Text>
-                </View>
-                <MaterialCommunityIcons name="chevron-right" size={24} color={onToneColor(deck.tone)} />
+        {DECKS.map((deck) => {
+          const inner = (
+            <View style={[styles.deckInner, deck.comingSoon && styles.deckComingSoon]}>
+              <MaterialCommunityIcons name={deck.icon} size={26} color={onToneColor(deck.tone)} />
+              <View style={{ flex: 1 }}>
+                <Text variant="titleSmall" style={{ color: onToneColor(deck.tone) }}>
+                  {deck.label}
+                </Text>
+                <Text variant="bodySmall" style={{ color: onToneColor(deck.tone), opacity: 0.85 }}>
+                  {deck.sub}
+                </Text>
               </View>
-            </TouchableRipple>
-          </Surface>
-        ))}
+              {deck.comingSoon && (
+                <Text variant="labelMedium" style={{ color: onToneColor(deck.tone), opacity: 0.9 }}>
+                  Coming soon
+                </Text>
+              )}
+              <MaterialCommunityIcons name="chevron-right" size={24} color={onToneColor(deck.tone)} />
+            </View>
+          );
+          return (
+            <Surface key={deck.label} elevation={0} style={[styles.deck, { backgroundColor: toneColor(deck.tone) }]}>
+              {deck.comingSoon ? (
+                inner
+              ) : (
+                <TouchableRipple onPress={() => router.push(deck.route as any)} style={styles.deckRipple}>
+                  {inner}
+                </TouchableRipple>
+              )}
+            </Surface>
+          );
+        })}
 
         {/* Flashcards by song */}
         <Text variant="titleMedium" style={[styles.sectionLabel, { color: theme.colors.onBackground }]}>
@@ -121,6 +135,7 @@ const styles = StyleSheet.create({
   deck: { marginHorizontal: 16, borderRadius: 20, marginBottom: 12 },
   deckRipple: { borderRadius: 20 },
   deckInner: { flexDirection: "row", alignItems: "center", padding: 16, gap: 14 },
+  deckComingSoon: { opacity: 0.6 },
   carouselContent: { paddingHorizontal: 20, gap: 16 },
   songTile: { width: 100, borderRadius: 20 },
   songCover: { width: 92, height: 92, borderRadius: 20, alignItems: "center", justifyContent: "center", marginBottom: 6 },
