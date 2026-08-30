@@ -6,17 +6,9 @@ import { Appbar, Button, Card, Modal, Portal, Surface, Text, TextInput } from "r
 import { AppScaffold } from "../../components/AppScaffold";
 import { useAppTheme } from "../../constants/theme";
 import { useSupabaseAuth } from "../../context/SupabaseAuth";
-import { SONGS } from "../../data/songs";
+import { SONGS, type Song } from "../../data/songs";
+import { fetchStartedSongIds } from "../../Supabase/services/activityHistory";
 import { getLoginStreak } from "../../Supabase/services/streak";
-
-type SectionIcon = keyof typeof MaterialCommunityIcons.glyphMap;
-type Tone = "primary" | "tertiary" | "secondary" | "streak";
-const SECTIONS: { label: string; route: string; icon: SectionIcon; tone: Tone; comingSoon?: boolean }[] = [
-  { label: "Songs", route: "/songs", icon: "music-clef-treble", tone: "primary" },
-  { label: "Lessons", route: "/lessons", icon: "book-open-variant", tone: "tertiary" },
-  { label: "Listening", route: "/listening", icon: "headphones", tone: "secondary", comingSoon: true },
-  { label: "Speaking", route: "/speaking", icon: "microphone-variant", tone: "streak", comingSoon: true },
-];
 
 export default function Home() {
   const router = useRouter();
@@ -30,15 +22,21 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [streak, setStreak] = useState<number | null>(null);
+  // Song ids the user has played at least once — splits the two song rows below.
+  const [startedIds, setStartedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!user) {
       setStreak(null);
+      setStartedIds(new Set());
       return;
     }
     getLoginStreak(user.id)
       .then(setStreak)
       .catch(() => setStreak(null));
+    fetchStartedSongIds(user.id)
+      .then(setStartedIds)
+      .catch(() => setStartedIds(new Set()));
   }, [user]);
 
   function openModal() {
@@ -87,22 +85,23 @@ export default function Home() {
   }
 
   const displayName = user?.user_metadata?.display_name ?? null;
-  const toneColor = (tone: Tone) =>
-    tone === "primary"
-      ? theme.colors.primaryContainer
-      : tone === "tertiary"
-      ? theme.colors.tertiaryContainer
-      : tone === "secondary"
-      ? theme.colors.secondaryContainer
-      : theme.colors.streakContainer;
-  const onToneColor = (tone: Tone) =>
-    tone === "primary"
-      ? theme.colors.onPrimaryContainer
-      : tone === "tertiary"
-      ? theme.colors.onTertiaryContainer
-      : tone === "secondary"
-      ? theme.colors.onSecondaryContainer
-      : theme.colors.onStreakContainer;
+
+  const continueSongs = SONGS.filter((song) => startedIds.has(song.id));
+  const startSongs = SONGS.filter((song) => !startedIds.has(song.id));
+
+  const renderSongTile = (song: Song) => (
+    <Pressable key={song.id} style={styles.songTile} onPress={() => router.push(`/song/${song.id}` as any)}>
+      <Surface style={[styles.songCover, { backgroundColor: song.coverColor }]} elevation={1}>
+        <MaterialCommunityIcons name="music" size={32} color="#3B2A1F" />
+      </Surface>
+      <Text variant="labelLarge" numberOfLines={1} style={[styles.songTileName, { color: theme.colors.onBackground }]}>
+        {song.displayName ?? song.name}
+      </Text>
+      <Text variant="bodySmall" numberOfLines={1} style={[styles.songTileArtist, { color: theme.colors.onSurfaceVariant }]}>
+        {song.displayName ? "—" : song.artist}
+      </Text>
+    </Pressable>
+  );
 
   const authActions = isLoading ? null : user ? (
     <Appbar.Action icon="logout" onPress={logout} accessibilityLabel="Log out" />
@@ -136,66 +135,53 @@ export default function Home() {
           </Card.Content>
         </Card>
 
-        {/* Song carousel */}
+        {/* Continue a song — songs the user has already started */}
         <View style={styles.sectionHeaderRow}>
           <Text variant="titleMedium" style={{ color: theme.colors.onBackground }}>
-            Your songs
+            Continue a song
           </Text>
-          <Button mode="text" compact onPress={() => router.push("/songs")}>
-            See all
-          </Button>
         </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carouselContent}>
-          {SONGS.map((song) => (
-            <Pressable key={song.id} style={styles.songTile} onPress={() => router.push(`/song/${song.id}` as any)}>
-              <Surface style={[styles.songCover, { backgroundColor: song.coverColor }]} elevation={1}>
-                <MaterialCommunityIcons name="music" size={32} color="#3B2A1F" />
-              </Surface>
-              <Text variant="labelLarge" numberOfLines={1} style={[styles.songTileName, { color: theme.colors.onBackground }]}>
-                {song.displayName ?? song.name}
-              </Text>
-              <Text variant="bodySmall" numberOfLines={1} style={[styles.songTileArtist, { color: theme.colors.onSurfaceVariant }]}>
-                {song.displayName ? "—" : song.artist}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
+        {continueSongs.length === 0 ? (
+          <Text variant="bodySmall" style={[styles.emptyRow, { color: theme.colors.onSurfaceVariant }]}>
+            You haven&apos;t started any songs yet.
+          </Text>
+        ) : (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carouselContent}>
+            {continueSongs.map(renderSongTile)}
+          </ScrollView>
+        )}
 
-        {/* Explore categories */}
+        {/* Start a song — songs the user has not opened yet */}
         <View style={styles.sectionHeaderRow}>
           <Text variant="titleMedium" style={{ color: theme.colors.onBackground }}>
-            Explore
+            Start a song
           </Text>
         </View>
-        <View style={styles.grid}>
-          {SECTIONS.map((section) => {
-            const card = (
-              <Surface
-                style={[styles.categoryCard, { backgroundColor: toneColor(section.tone) }, section.comingSoon && styles.comingSoonCard]}
-                elevation={0}
-              >
-                <MaterialCommunityIcons name={section.icon} size={28} color={onToneColor(section.tone)} />
-                <Text variant="titleSmall" style={{ color: onToneColor(section.tone), marginTop: 12 }}>
-                  {section.label}
-                </Text>
-                {section.comingSoon && (
-                  <Text variant="labelSmall" style={{ color: onToneColor(section.tone), opacity: 0.9, marginTop: 2 }}>
-                    Coming soon
-                  </Text>
-                )}
-              </Surface>
-            );
-            return section.comingSoon ? (
-              <View key={section.label} style={styles.gridItem}>
-                {card}
-              </View>
-            ) : (
-              <Pressable key={section.label} style={styles.gridItem} onPress={() => router.push(section.route as any)}>
-                {card}
-              </Pressable>
-            );
-          })}
+        {startSongs.length === 0 ? (
+          <Text variant="bodySmall" style={[styles.emptyRow, { color: theme.colors.onSurfaceVariant }]}>
+            You&apos;ve started every song. ¡Bravo!
+          </Text>
+        ) : (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carouselContent}>
+            {startSongs.map(renderSongTile)}
+          </ScrollView>
+        )}
+
+        {/* Do a lesson */}
+        <View style={styles.sectionHeaderRow}>
+          <Text variant="titleMedium" style={{ color: theme.colors.onBackground }}>
+            Do a lesson
+          </Text>
         </View>
+        <Button
+          mode="contained"
+          icon="book-open-variant"
+          onPress={() => router.push("/lessons")}
+          style={styles.lessonButton}
+          contentStyle={styles.lessonButtonContent}
+        >
+          Lessons
+        </Button>
       </ScrollView>
 
       {/* Login / Sign up modal */}
@@ -268,6 +254,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   carouselContent: { paddingHorizontal: 20, gap: 16 },
+  emptyRow: { paddingHorizontal: 20, paddingVertical: 4 },
   songTile: { width: 116, alignItems: "center" },
   songCover: {
     width: 108,
@@ -279,15 +266,8 @@ const styles = StyleSheet.create({
   },
   songTileName: { textAlign: "center", width: 108 },
   songTileArtist: { textAlign: "center", width: 108, marginTop: 2 },
-  grid: { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 16, gap: 16 },
-  gridItem: { width: "47%" },
-  categoryCard: {
-    borderRadius: 24,
-    paddingVertical: 26,
-    paddingHorizontal: 18,
-    alignItems: "flex-start",
-  },
-  comingSoonCard: { opacity: 0.6 },
+  lessonButton: { marginHorizontal: 20, marginTop: 2, borderRadius: 18 },
+  lessonButtonContent: { height: 56 },
   modalBox: { marginHorizontal: 24, borderRadius: 28, padding: 24 },
   input: { marginBottom: 12 },
   modalBtn: { marginBottom: 10 },

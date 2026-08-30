@@ -1,11 +1,12 @@
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
-import { ActivityIndicator, Button, Chip, Text, TextInput } from "react-native-paper";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Avatar, Button, Chip, Text, TextInput } from "react-native-paper";
 import { AppScaffold } from "../components/AppScaffold";
 import { useAppTheme } from "../constants/theme";
 import { useSupabaseAuth } from "../context/SupabaseAuth";
 import { updateDisplayName } from "../Supabase/services/authenticate";
+import { fetchAvatars, updateUserAvatar, type Avatar as AvatarOption } from "../Supabase/services/avatars";
 import { fetchGenres, fetchUserGenres, type Genre } from "../Supabase/services/genres";
 import { fetchAvailableLevels, fetchUserLevel, saveUserLevel, type Level } from "../Supabase/services/levels";
 import { saveUserPrefs } from "../Supabase/services/preferences";
@@ -18,6 +19,8 @@ export default function PreferencesScreen() {
   const { user } = useSupabaseAuth();
   const [genres, setGenres] = useState<Genre[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [avatars, setAvatars] = useState<AvatarOption[]>([]);
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [levels, setLevels] = useState<Level[]>([]);
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
@@ -26,13 +29,21 @@ export default function PreferencesScreen() {
 
   useEffect(() => {
     if (!user) return;
-    Promise.all([fetchGenres(), fetchAvailableLevels(), fetchUserLevel(user.id), fetchUserGenres(user.id)])
-      .then(([genreData, levelData, currentLevel, currentGenres]) => {
+    Promise.all([
+      fetchGenres(),
+      fetchAvailableLevels(),
+      fetchUserLevel(user.id),
+      fetchUserGenres(user.id),
+      fetchAvatars(),
+    ])
+      .then(([genreData, levelData, currentLevel, currentGenres, avatarData]) => {
         setGenres(genreData);
         setLevels(levelData);
+        setAvatars(avatarData);
         if (currentLevel) setSelectedLevel(currentLevel.level_id);
         if (currentGenres.length > 0) setSelected(new Set(currentGenres.map((g) => g.genre_id)));
         if (user.user_metadata?.display_name) setName(user.user_metadata.display_name);
+        if (user.user_metadata?.avatar_url) setSelectedAvatar(user.user_metadata.avatar_url);
       })
       .catch((e) => {
         console.error("Failed to load preferences:", e);
@@ -71,6 +82,7 @@ export default function PreferencesScreen() {
     setSaving(true);
     try {
       await updateDisplayName(name.trim());
+      if (selectedAvatar) await updateUserAvatar(selectedAvatar);
       await saveUserPrefs(user.id, Array.from(selected));
       await saveUserLevel(user.id, selectedLevel);
       router.replace("/profile");
@@ -100,6 +112,46 @@ export default function PreferencesScreen() {
               What should we call you?
             </Text>
             <TextInput mode="outlined" label="Your name" value={name} onChangeText={setName} style={styles.input} />
+          </View>
+
+          <View style={styles.section}>
+            <Text variant="titleMedium" style={{ color: theme.colors.onBackground, fontWeight: "700" }}>
+              Pick your avatar
+            </Text>
+            <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginTop: 6 }}>
+              Choose a profile picture.
+            </Text>
+            {loading ? (
+              <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 24 }} />
+            ) : (
+              <View style={styles.avatarGrid}>
+                {avatars.map((avatar) => {
+                  const isSelected = selectedAvatar === avatar.image_url;
+                  return (
+                    <Pressable
+                      key={avatar.avatar_id}
+                      onPress={() => setSelectedAvatar(avatar.image_url)}
+                      accessibilityRole="button"
+                      accessibilityLabel={avatar.title}
+                      accessibilityState={{ selected: isSelected }}
+                      style={[
+                        styles.avatarOption,
+                        {
+                          borderColor: isSelected ? theme.colors.primary : "transparent",
+                          backgroundColor: isSelected ? theme.colors.primaryContainer : "transparent",
+                        },
+                      ]}
+                    >
+                      <Avatar.Image
+                        size={56}
+                        source={{ uri: avatar.image_url }}
+                        style={{ backgroundColor: theme.colors.surfaceVariant }}
+                      />
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
           </View>
 
           <View style={styles.section}>
@@ -176,6 +228,8 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 24, paddingTop: 4, paddingBottom: 12 },
   section: { paddingHorizontal: 24, paddingTop: 20 },
   input: { marginTop: 12 },
+  avatarGrid: { flexDirection: "row", flexWrap: "wrap", marginTop: 16, gap: 8 },
+  avatarOption: { padding: 4, borderRadius: 34, borderWidth: 2 },
   grid: { flexDirection: "row", flexWrap: "wrap", marginTop: 16, gap: 10 },
   footer: { paddingHorizontal: 24, paddingBottom: 24, paddingTop: 12 },
   continueContent: { paddingVertical: 6 },

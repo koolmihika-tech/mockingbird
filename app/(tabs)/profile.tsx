@@ -43,6 +43,7 @@ export default function ProfileScreen() {
   }, [user]);
 
   const displayName = user?.user_metadata?.display_name ?? "—";
+  const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
   // Weekly streak goal used purely for the visual progress bar.
   const streakGoal = 7;
   const streakProgress = Math.min((streak ?? 0) / streakGoal, 1);
@@ -58,7 +59,11 @@ export default function ProfileScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Identity */}
           <View style={styles.identity}>
-            <Avatar.Icon size={72} icon="account" style={{ backgroundColor: theme.colors.primaryContainer }} color={theme.colors.onPrimaryContainer} />
+            {avatarUrl ? (
+              <Avatar.Image size={72} source={{ uri: avatarUrl }} style={{ backgroundColor: theme.colors.surfaceVariant }} />
+            ) : (
+              <Avatar.Icon size={72} icon="account" style={{ backgroundColor: theme.colors.primaryContainer }} color={theme.colors.onPrimaryContainer} />
+            )}
             <Text variant="titleLarge" style={{ color: theme.colors.onBackground, marginTop: 12 }}>
               {displayName}
             </Text>
@@ -136,9 +141,11 @@ export default function ProfileScreen() {
             </Surface>
           )}
 
-          <Button mode="outlined" icon="logout" onPress={logout} style={styles.logoutBtn}>
-            Log out
-          </Button>
+          {user && (
+            <Button mode="outlined" icon="logout" onPress={logout} style={styles.logoutBtn}>
+              Log out
+            </Button>
+          )}
         </ScrollView>
       )}
     </AppScaffold>

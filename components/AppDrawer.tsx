@@ -18,7 +18,7 @@ export function AppDrawer() {
   const pathname = usePathname();
   const { isOpen, close } = useDrawer();
 
-  const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
+  const slideAnim = useRef(new Animated.Value(DRAWER_WIDTH)).current;
   const [mounted, setMounted] = useState(false);
 
   const prevOpen = useRef(false);
@@ -28,7 +28,7 @@ export function AppDrawer() {
       setMounted(true);
       Animated.spring(slideAnim, { toValue: 0, friction: 20, tension: 120, useNativeDriver: true }).start();
     } else {
-      Animated.spring(slideAnim, { toValue: -DRAWER_WIDTH, friction: 20, tension: 120, useNativeDriver: true }).start(
+      Animated.spring(slideAnim, { toValue: DRAWER_WIDTH, friction: 20, tension: 120, useNativeDriver: true }).start(
         ({ finished }) => {
           if (finished) setMounted(false);
         }
@@ -109,8 +109,8 @@ function Item({
 
 const styles = StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.4)" },
-  drawer: { position: "absolute", top: 0, bottom: 0, left: 0, width: DRAWER_WIDTH },
-  surface: { flex: 1, borderTopRightRadius: 16, borderBottomRightRadius: 16 },
+  drawer: { position: "absolute", top: 0, bottom: 0, right: 0, width: DRAWER_WIDTH },
+  surface: { flex: 1, borderTopLeftRadius: 16, borderBottomLeftRadius: 16 },
   content: { paddingTop: 56, paddingBottom: 40, paddingHorizontal: 16 },
   titleRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 20, paddingHorizontal: 8 },
   item: {

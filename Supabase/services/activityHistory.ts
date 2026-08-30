@@ -22,6 +22,25 @@ export async function logActivity(
   }
 }
 
+// Set of song ids (user_activity_history.activity_id for activity_type
+// 'song played') the user has played at least once — used on the home
+// screen to split songs into "continue" vs "start" rows. activity_id is
+// logged as data/songs.ts Song.id (see app/song/[id].tsx).
+export async function fetchStartedSongIds(userId: string): Promise<Set<string>> {
+  const { data, error } = await supabase
+    .from("user_activity_history")
+    .select("activity_id")
+    .eq("user_id", userId)
+    .eq("activity_type", "song played");
+
+  if (error) {
+    console.error("Failed to fetch started songs:", error.message);
+    return new Set();
+  }
+
+  return new Set((data ?? []).map((row) => String(row.activity_id)));
+}
+
 /** Minimum score (percent) an attempt must reach to count a lesson as passed. */
 export const PASSING_SCORE = 70;
 
