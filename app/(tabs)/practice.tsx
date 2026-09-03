@@ -106,7 +106,7 @@ export default function PracticeScreen() {
           {SONGS.filter((s) => !s.displayName).map((song) => (
             <TouchableRipple
               key={song.id}
-              onPress={() => router.push(`/reading/${song.id}` as any)}
+              onPress={() => router.push(`/songs/${song.id}/flashcards` as any)}
               style={styles.songTile}
               borderless
             >

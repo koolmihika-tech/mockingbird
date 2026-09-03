@@ -13,14 +13,15 @@ import { getLoginStreak } from "../../Supabase/services/streak";
 export default function Home() {
   const router = useRouter();
   const theme = useAppTheme();
-  const { user, login, signup, loginWithGoogle, logout, isLoading } = useSupabaseAuth();
-  // The auth modal starts by attempting a log in; if no account exists it flips
-  // to "signup" mode (see handleSubmit). `notice` carries the in-modal message.
+  const { user, login, signup, logout, isLoading } = useSupabaseAuth();
+  // The auth modal has two tabs — "login" and "signup" — the user picks up front.
+  // `notice` carries the in-modal message (errors, or a nudge to the other tab).
   const [modalOpen, setModalOpen] = useState(false);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [notice, setNotice] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [streak, setStreak] = useState<number | null>(null);
   // Song ids the user has played at least once — splits the two song rows below.
   const [startedIds, setStartedIds] = useState<Set<string>>(new Set());
@@ -42,6 +43,7 @@ export default function Home() {
   function openModal() {
     setEmail("");
     setPassword("");
+    setUsername("");
     setMode("login");
     setNotice(null);
     setModalOpen(true);
@@ -52,20 +54,24 @@ export default function Home() {
     setNotice(null);
   }
 
+  function switchMode(next: "login" | "signup") {
+    setMode(next);
+    setNotice(null);
+  }
+
   async function handleSubmit() {
     setNotice(null);
     if (mode === "login") {
-      // Try to log the user in first. If they already have an account, they're
-      // in. If not, flip to sign-up so they can create one with the same info.
       const res = await login(email, password);
       if (res.ok) {
         closeModal();
+      } else if (/invalid login|invalid credentials|not found|no user/i.test(res.error ?? "")) {
+        setNotice("We couldn't log you in. Check your details, or switch to Sign up.");
       } else {
-        setMode("signup");
-        setNotice("Account does not exist. Enter your details to sign up.");
+        setNotice(res.error ?? "Login failed");
       }
     } else {
-      const res = await signup(email, password);
+      const res = await signup(email, password, username.trim() || undefined);
       if (res.ok) {
         closeModal();
       } else if (/already registered|already exists|user already/i.test(res.error ?? "")) {
@@ -76,12 +82,6 @@ export default function Home() {
         setNotice(res.error ?? "Sign up failed");
       }
     }
-  }
-
-  async function handleGoogleSubmit() {
-    const res = await loginWithGoogle();
-    if (res.ok) closeModal();
-    else if (res.error) setNotice(res.error);
   }
 
   const displayName = user?.user_metadata?.display_name ?? null;
@@ -122,15 +122,30 @@ export default function Home() {
               Learn Spanish through the music you love.
             </Text>
             <View style={styles.streakRow}>
-              <View style={[styles.streakPill, { backgroundColor: theme.colors.streak }]}>
-                <MaterialCommunityIcons name="fire" size={18} color={theme.colors.onStreak} />
-                <Text variant="labelLarge" style={{ color: theme.colors.onStreak }}>
-                  {streak ?? 0} day streak
-                </Text>
-              </View>
-              <Button mode="contained-tonal" compact onPress={() => router.push("/practice")} icon="play">
-                Practice
-              </Button>
+              {user ? (
+                <View style={[styles.streakPill, { backgroundColor: theme.colors.streak }]}>
+                  <MaterialCommunityIcons name="fire" size={18} color={theme.colors.onStreak} />
+                  <Text variant="labelLarge" style={{ color: theme.colors.onStreak }}>
+                    {streak ?? 0} day streak
+                  </Text>
+                </View>
+              ) : (
+                <Pressable
+                  onPress={openModal}
+                  style={({ pressed }) => [
+                    styles.streakPill,
+                    styles.signInPill,
+                    { backgroundColor: theme.colors.streak },
+                    pressed && { opacity: 0.85 },
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Click here to sign in and get started!"
+                >
+                  <Text variant="labelLarge" style={{ color: theme.colors.onStreak }}>
+                    Click here to sign in and get started!
+                  </Text>
+                </Pressable>
+              )}
             </View>
           </Card.Content>
         </Card>
@@ -192,9 +207,48 @@ export default function Home() {
           contentContainerStyle={[styles.modalBox, { backgroundColor: theme.colors.surface }]}
         >
           <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
-            <Text variant="headlineSmall" style={{ color: theme.colors.onSurface, marginBottom: 12 }}>
-              {mode === "signup" ? "Sign up" : "Log in"}
+            <Text variant="headlineSmall" style={{ color: theme.colors.onSurface, marginBottom: 16 }}>
+              {mode === "signup" ? "Create your account" : "Log in to your account"}
             </Text>
+
+            <View style={styles.tabRow}>
+              {(["login", "signup"] as const).map((tab) => {
+                const active = mode === tab;
+                return (
+                  <Pressable
+                    key={tab}
+                    onPress={() => switchMode(tab)}
+                    style={[
+                      styles.tab,
+                      { borderBottomColor: active ? theme.colors.primary : "transparent" },
+                    ]}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: active }}
+                  >
+                    <Text
+                      variant="labelLarge"
+                      style={{
+                        color: active ? theme.colors.onSurface : theme.colors.onSurfaceVariant,
+                        textAlign: "center",
+                      }}
+                    >
+                      {tab === "login" ? "Log in" : "Sign up"}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {mode === "signup" && (
+              <TextInput
+                mode="outlined"
+                label="Username"
+                autoCapitalize="none"
+                value={username}
+                onChangeText={setUsername}
+                style={styles.input}
+              />
+            )}
             <TextInput
               mode="outlined"
               label="Email"
@@ -218,10 +272,7 @@ export default function Home() {
               </Text>
             )}
             <Button mode="contained" onPress={handleSubmit} loading={isLoading} disabled={isLoading} style={styles.modalBtn}>
-              {mode === "signup" ? "Sign up" : "Log in"}
-            </Button>
-            <Button mode="outlined" onPress={handleGoogleSubmit} disabled={isLoading} icon="google" style={styles.modalBtn}>
-              {mode === "signup" ? "Sign up with Google" : "Log in with Google"}
+              {mode === "signup" ? "Create account" : "Log in"}
             </Button>
             <Button mode="text" onPress={closeModal}>
               Cancel
@@ -245,6 +296,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
   },
+  signInPill: { paddingHorizontal: 24, paddingVertical: 10 },
   sectionHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -269,6 +321,8 @@ const styles = StyleSheet.create({
   lessonButton: { marginHorizontal: 20, marginTop: 2, borderRadius: 18 },
   lessonButtonContent: { height: 56 },
   modalBox: { marginHorizontal: 24, borderRadius: 28, padding: 24 },
+  tabRow: { flexDirection: "row", marginBottom: 20 },
+  tab: { flex: 1, paddingVertical: 10, borderBottomWidth: 2 },
   input: { marginBottom: 12 },
   modalBtn: { marginBottom: 10 },
 });

@@ -6,7 +6,7 @@ import { AppScaffold } from "../components/AppScaffold";
 import { useAppTheme } from "../constants/theme";
 import { useSupabaseAuth } from "../context/SupabaseAuth";
 import { updateDisplayName } from "../Supabase/services/authenticate";
-import { fetchAvatars, updateUserAvatar, type Avatar as AvatarOption } from "../Supabase/services/avatars";
+import { fetchAvatars, fetchUserAvatar, updateUserAvatar, type Avatar as AvatarOption } from "../Supabase/services/avatars";
 import { fetchGenres, fetchUserGenres, type Genre } from "../Supabase/services/genres";
 import { fetchAvailableLevels, fetchUserLevel, saveUserLevel, type Level } from "../Supabase/services/levels";
 import { saveUserPrefs } from "../Supabase/services/preferences";
@@ -20,6 +20,7 @@ export default function PreferencesScreen() {
   const [genres, setGenres] = useState<Genre[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [avatars, setAvatars] = useState<AvatarOption[]>([]);
+  // Holds the chosen avatar's `title` (the key stored in Mockingbird.user_avatar).
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [levels, setLevels] = useState<Level[]>([]);
@@ -35,15 +36,21 @@ export default function PreferencesScreen() {
       fetchUserLevel(user.id),
       fetchUserGenres(user.id),
       fetchAvatars(),
+      fetchUserAvatar(user.id),
     ])
-      .then(([genreData, levelData, currentLevel, currentGenres, avatarData]) => {
+      .then(([genreData, levelData, currentLevel, currentGenres, avatarData, currentAvatar]) => {
         setGenres(genreData);
         setLevels(levelData);
         setAvatars(avatarData);
-        if (currentLevel) setSelectedLevel(currentLevel.level_id);
+        if (currentLevel) {
+          // Match on level_name so the right chip highlights even if the stored
+          // id points at a different row of the same level.
+          const chip = levelData.find((l) => l.level_name === currentLevel.level_name);
+          setSelectedLevel((chip ?? currentLevel).level_id);
+        }
         if (currentGenres.length > 0) setSelected(new Set(currentGenres.map((g) => g.genre_id)));
         if (user.user_metadata?.display_name) setName(user.user_metadata.display_name);
-        if (user.user_metadata?.avatar_url) setSelectedAvatar(user.user_metadata.avatar_url);
+        if (currentAvatar) setSelectedAvatar(currentAvatar);
       })
       .catch((e) => {
         console.error("Failed to load preferences:", e);
@@ -82,7 +89,13 @@ export default function PreferencesScreen() {
     setSaving(true);
     try {
       await updateDisplayName(name.trim());
-      if (selectedAvatar) await updateUserAvatar(selectedAvatar);
+      if (selectedAvatar) {
+        try {
+          await updateUserAvatar(user.id, selectedAvatar);
+        } catch (avatarError) {
+          console.error("Failed to save avatar:", avatarError);
+        }
+      }
       await saveUserPrefs(user.id, Array.from(selected));
       await saveUserLevel(user.id, selectedLevel);
       router.replace("/profile");
@@ -126,11 +139,11 @@ export default function PreferencesScreen() {
             ) : (
               <View style={styles.avatarGrid}>
                 {avatars.map((avatar) => {
-                  const isSelected = selectedAvatar === avatar.image_url;
+                  const isSelected = selectedAvatar === avatar.title;
                   return (
                     <Pressable
                       key={avatar.avatar_id}
-                      onPress={() => setSelectedAvatar(avatar.image_url)}
+                      onPress={() => setSelectedAvatar(avatar.title)}
                       accessibilityRole="button"
                       accessibilityLabel={avatar.title}
                       accessibilityState={{ selected: isSelected }}

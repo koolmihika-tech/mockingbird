@@ -57,9 +57,13 @@ async function logSessionEnd() {
   currentDbSessionId = null;
 }
 
-//Signing up with email, password
-export async function signUp(email: string, password: string) {
-  const { data, error } = await supabase.auth.signUp({ email, password });
+//Signing up with email, password. The username is stored as the user's display name.
+export async function signUp(email: string, password: string, displayName?: string) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: displayName ? { data: { display_name: displayName } } : undefined,
+  });
 
   // Surfaced in-modal by the caller rather than via a native alert.
   if (error) {

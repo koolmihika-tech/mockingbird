@@ -7,6 +7,7 @@ import { AppScaffold } from "../../components/AppScaffold";
 import { MasteryDial } from "../../components/MasteryDial";
 import { useAppTheme, withAlpha } from "../../constants/theme";
 import { useSupabaseAuth } from "../../context/SupabaseAuth";
+import { fetchAvatars, fetchUserAvatar } from "../../Supabase/services/avatars";
 import { fetchUserGenres, type Genre } from "../../Supabase/services/genres";
 import { fetchUserLevel, type Level } from "../../Supabase/services/levels";
 import { fetchTopicMastery, type TopicMastery } from "../../Supabase/services/mastery";
@@ -20,6 +21,7 @@ export default function ProfileScreen() {
   const [genres, setGenres] = useState<Genre[]>([]);
   const [streak, setStreak] = useState<number | null>(null);
   const [mastery, setMastery] = useState<TopicMastery[]>([]);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,22 +30,31 @@ export default function ProfileScreen() {
       setGenres([]);
       setStreak(null);
       setMastery([]);
+      setAvatarUrl(undefined);
       setLoading(false);
       return;
     }
-    Promise.all([fetchUserLevel(user.id), fetchUserGenres(user.id), getLoginStreak(user.id), fetchTopicMastery(user.id)])
-      .then(([levelData, genreData, streakData, masteryData]) => {
+    Promise.all([
+      fetchUserLevel(user.id),
+      fetchUserGenres(user.id),
+      getLoginStreak(user.id),
+      fetchTopicMastery(user.id),
+      fetchAvatars(),
+      fetchUserAvatar(user.id),
+    ])
+      .then(([levelData, genreData, streakData, masteryData, avatarCatalogue, avatarTitle]) => {
         setLevel(levelData);
         setGenres(genreData);
         setStreak(streakData);
         setMastery(masteryData);
+        const chosen = avatarCatalogue.find((a) => a.title === avatarTitle);
+        setAvatarUrl(chosen?.image_url ?? (user.user_metadata?.avatar_url as string | undefined));
       })
       .catch(() => Alert.alert("Error", "Could not load your profile."))
       .finally(() => setLoading(false));
   }, [user]);
 
   const displayName = user?.user_metadata?.display_name ?? "—";
-  const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
   // Weekly streak goal used purely for the visual progress bar.
   const streakGoal = 7;
   const streakProgress = Math.min((streak ?? 0) / streakGoal, 1);

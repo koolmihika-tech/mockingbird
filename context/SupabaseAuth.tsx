@@ -1,13 +1,14 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { supabase } from "../Supabase/lib/supabase";
 import { signIn, signInWithGoogle, signOut, signUp } from "../Supabase/services/authenticate";
+import { DEFAULT_AVATAR, updateUserAvatar } from "../Supabase/services/avatars";
 
 export type AuthResult = { ok: boolean; error?: string };
 
 interface SupabaseAuthContextType {
   user: any | null;
   login: (email: string, password: string) => Promise<AuthResult>;
-  signup: (email: string, password: string) => Promise<AuthResult>;
+  signup: (email: string, password: string, displayName?: string) => Promise<AuthResult>;
   loginWithGoogle: () => Promise<AuthResult>;
   logout: () => Promise<void>;
   isLoading: boolean;
@@ -56,11 +57,19 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function signup(email: string, password: string): Promise<AuthResult> {
+  async function signup(email: string, password: string, displayName?: string): Promise<AuthResult> {
     setIsLoading(true);
     setError(null);
     try {
-      await signUp(email, password);
+      const data = await signUp(email, password, displayName);
+      // Give every new account the default avatar; they can change it in Profile.
+      if (data.user) {
+        try {
+          await updateUserAvatar(data.user.id, DEFAULT_AVATAR);
+        } catch (avatarError) {
+          console.error("Failed to assign default avatar:", avatarError);
+        }
+      }
       return { ok: true };
     } catch (e: any) {
       const message = e.message ?? "Sign up failed";

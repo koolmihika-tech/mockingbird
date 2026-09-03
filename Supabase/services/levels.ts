@@ -17,10 +17,20 @@ export async function fetchAvailableLevels(): Promise<Level[]> {
     .schema("Mockingbird")
     .from("levels")
     .select("*")
-    .eq("level_name", "1");
+    .eq("level_name", "1")
+    .order("level_id");
 
   if (error) throw error;
-  return data ?? [];
+
+  // The levels table holds one row per (level, topic), so a level_name repeats.
+  // Collapse to the first row of each unique level_name — the picker only needs
+  // one button per level.
+  const seen = new Set<string>();
+  return (data ?? []).filter((level) => {
+    if (seen.has(level.level_name)) return false;
+    seen.add(level.level_name);
+    return true;
+  });
 }
 
 export async function fetchAllLevelTopics(): Promise<LevelTopic[]> {
