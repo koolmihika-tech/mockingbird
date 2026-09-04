@@ -9,7 +9,7 @@ import { SONGS } from "../../data/songs";
 type Icon = keyof typeof MaterialCommunityIcons.glyphMap;
 type Tone = "primary" | "tertiary" | "secondary" | "streak";
 const DECKS: { label: string; sub: string; route: string; icon: Icon; tone: Tone; comingSoon?: boolean }[] = [
-  { label: "Reading & Writing", sub: "Flashcards from your songs", route: "/lessons", icon: "book-open-variant", tone: "primary" },
+  { label: "Reading & Writing", sub: "Lessons from the language", route: "/lessons", icon: "book-open-variant", tone: "primary" },
   { label: "Listening", sub: "Tune your ear", route: "/listening", icon: "headphones", tone: "secondary", comingSoon: true },
   { label: "Speaking", sub: "Say it out loud", route: "/speaking", icon: "microphone-variant", tone: "streak", comingSoon: true },
 ];
@@ -47,10 +47,10 @@ export default function PracticeScreen() {
                   TODAY&apos;S PRACTICE
                 </Text>
                 <Text variant="titleLarge" style={{ color: theme.colors.onPrimaryContainer, marginTop: 4 }}>
-                  Vocabulary flashcards
+                  Grammar lessons
                 </Text>
                 <Text variant="bodyMedium" style={{ color: theme.colors.onPrimaryContainer, opacity: 0.85, marginTop: 4 }}>
-                  Learn new words from the songs you love.
+                  Build basic skills to help you learn.
                 </Text>
                 <Button mode="contained-tonal" icon="play" onPress={() => router.push("/lessons")} style={styles.heroBtn}>
                   Start
