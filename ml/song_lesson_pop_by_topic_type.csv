@@ -1,0 +1,19 @@
+topic,song_level,question_type,questions,questions_correct,questions_incorrect,total_time_sec,avg_time_per_q_sec,accuracy_pct
+La Libertad,1,fill_blank,2477,1190,1287,54722,22.1,48.0
+La Libertad,1,multiple_choice,7523,6915,608,73147,9.7,91.9
+La Libertad,1,short_answer,10000,10000,0,265500,26.6,100.0
+Me Gustas Tú,1,fill_blank,2511,1247,1264,55136,22.0,49.7
+Me Gustas Tú,1,multiple_choice,7489,6933,556,72252,9.6,92.6
+Me Gustas Tú,1,short_answer,10000,10000,0,263036,26.3,100.0
+Vivir Mi Vida,1,fill_blank,2506,1364,1142,52312,20.9,54.4
+Vivir Mi Vida,1,multiple_choice,7494,6992,502,70618,9.4,93.3
+Vivir Mi Vida,1,short_answer,10000,10000,0,260962,26.1,100.0
+Limón y Sal,2,fill_blank,2512,914,1598,60265,24.0,36.4
+Limón y Sal,2,multiple_choice,7488,6579,909,76930,10.3,87.9
+Limón y Sal,2,short_answer,10000,10000,0,270501,27.1,100.0
+Mejor Que Ayer,2,fill_blank,2509,1052,1457,58597,23.4,41.9
+Mejor Que Ayer,2,multiple_choice,7491,6688,803,75386,10.1,89.3
+Mejor Que Ayer,2,short_answer,10000,10000,0,268281,26.8,100.0
+Robarte un Beso,2,fill_blank,2544,850,1694,62257,24.5,33.4
+Robarte un Beso,2,multiple_choice,7456,6403,1053,78892,10.6,85.9
+Robarte un Beso,2,short_answer,10000,10000,0,273834,27.4,100.0

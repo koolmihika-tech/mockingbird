@@ -1,0 +1,12 @@
+# Runtime deps are declared in modal_app.py's image build; this file is for
+# local editor tooling / running the scoring helpers outside Modal.
+modal
+torch==2.4.1
+transformers==4.44.2
+soundfile==0.12.1
+numpy<2
+panphon==0.20.0
+epitran==1.25.1
+huggingface_hub==0.25.2
+fastapi[standard]==0.115.4
+phonemizer==3.2.1

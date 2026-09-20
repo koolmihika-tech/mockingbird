@@ -1,0 +1,19 @@
+topic,song_level,question_type,questions,questions_correct,questions_incorrect,total_time_sec,avg_time_per_q_sec,accuracy_pct
+La Libertad,1,fill_blank,7,4,3,162,23.2,57.1
+La Libertad,1,multiple_choice,18,14,4,174,9.7,77.8
+La Libertad,1,short_answer,25,25,0,583,23.3,100.0
+Me Gustas Tú,1,fill_blank,6,1,5,159,26.4,16.7
+Me Gustas Tú,1,multiple_choice,19,19,0,174,9.1,100.0
+Me Gustas Tú,1,short_answer,25,25,0,663,26.5,100.0
+Vivir Mi Vida,1,fill_blank,9,9,0,155,17.2,100.0
+Vivir Mi Vida,1,multiple_choice,16,12,4,153,9.6,75.0
+Vivir Mi Vida,1,short_answer,25,25,0,667,26.7,100.0
+Limón y Sal,2,fill_blank,5,1,4,125,25.0,20.0
+Limón y Sal,2,multiple_choice,20,17,3,193,9.6,85.0
+Limón y Sal,2,short_answer,25,25,0,763,30.5,100.0
+Mejor Que Ayer,2,fill_blank,9,3,6,170,18.9,33.3
+Mejor Que Ayer,2,multiple_choice,16,13,3,171,10.7,81.2
+Mejor Que Ayer,2,short_answer,25,25,0,737,29.5,100.0
+Robarte un Beso,2,fill_blank,5,2,3,120,23.9,40.0
+Robarte un Beso,2,multiple_choice,20,16,4,214,10.7,80.0
+Robarte un Beso,2,short_answer,25,25,0,701,28.1,100.0

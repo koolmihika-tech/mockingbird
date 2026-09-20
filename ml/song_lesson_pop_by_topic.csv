@@ -1,0 +1,7 @@
+topic,song_level,sessions,questions,questions_correct,questions_incorrect,total_time_sec,avg_time_per_q_sec,graded_accuracy_pct
+La Libertad,1,10,20000,18105,1895,393370,19.7,81.0
+Me Gustas Tú,1,10,20000,18180,1820,390424,19.5,81.8
+Vivir Mi Vida,1,10,20000,18356,1644,383891,19.2,83.6
+Limón y Sal,2,10,20000,17493,2507,407696,20.4,74.9
+Mejor Que Ayer,2,10,20000,17740,2260,402264,20.1,77.4
+Robarte un Beso,2,10,20000,17253,2747,414983,20.7,72.5

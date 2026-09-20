@@ -11,10 +11,10 @@ import { SONGS } from "../../data/songs";
 const IS_WEB = Platform.OS === "web";
 
 type SkillIcon = keyof typeof MaterialCommunityIcons.glyphMap;
-const SKILLS: { label: string; icon: SkillIcon; route?: "reading" | "writing" | "flashcards" }[] = [
+const SKILLS: { label: string; icon: SkillIcon; route?: "reading" | "writing" | "speaking" | "flashcards" }[] = [
   { label: "Reading", icon: "book-open-variant", route: "reading" },
   { label: "Writing", icon: "pencil", route: "writing" },
-  { label: "Speaking", icon: "microphone-variant" },
+  { label: "Speaking", icon: "microphone-variant", route: "speaking" },
   { label: "Flashcards", icon: "cards-outline", route: "flashcards" },
 ];
 

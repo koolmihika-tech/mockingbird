@@ -90,7 +90,7 @@ export default function Home() {
   const startSongs = SONGS.filter((song) => !startedIds.has(song.id));
 
   const renderSongTile = (song: Song) => (
-    <Pressable key={song.id} style={styles.songTile} onPress={() => router.push(`/song/${song.id}` as any)}>
+    <Pressable key={song.id} style={styles.songTile} onPress={() => router.push(`/songs/${song.id}` as any)}>
       <Surface style={[styles.songCover, { backgroundColor: song.coverColor }]} elevation={1}>
         <MaterialCommunityIcons name="music" size={32} color="#3B2A1F" />
       </Surface>
