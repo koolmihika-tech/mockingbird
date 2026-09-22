@@ -5,13 +5,11 @@ import {
   useAudioPlayer,
   useAudioRecorder,
 } from "expo-audio";
+import { File } from "expo-file-system";
 import { useCallback, useEffect, useState } from "react";
 import type { VoiceRecorder } from "./useVoiceRecorder.types";
 
-/** TEMPORARY bisection stub (round 2) — expo-audio restored, expo-file-system
- *  still disabled (getRecordingBase64 is a no-op) to isolate which of the two
- *  causes the TestFlight launch hang. Revert to the full implementation once
- *  confirmed. */
+/** Native recorder backed by expo-audio. Produces a file:// .m4a URI. */
 export function useVoiceRecorder(): VoiceRecorder {
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const player = useAudioPlayer(null);
@@ -44,6 +42,8 @@ export function useVoiceRecorder(): VoiceRecorder {
   const stop = useCallback(async () => {
     try {
       await recorder.stop();
+      // Switch the session back to playback so the clip isn't routed to the
+      // earpiece / silenced on iOS.
       await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false });
       setRecordingUri(recorder.uri ?? null);
     } catch {
@@ -65,8 +65,12 @@ export function useVoiceRecorder(): VoiceRecorder {
     player.play();
   }, [player, recordingUri]);
 
-  // expo-file-system disabled for this bisection round — uploads are stubbed.
-  const getRecordingBase64 = useCallback(async () => null, []);
+  const getRecordingBase64 = useCallback(async () => {
+    if (!recordingUri) return null;
+    const base64 = await new File(recordingUri).base64();
+    // RecordingPresets.HIGH_QUALITY records .m4a on both iOS and Android.
+    return { base64, mime: "audio/m4a" };
+  }, [recordingUri]);
 
   useEffect(() => {
     return () => {
