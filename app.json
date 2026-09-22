@@ -44,13 +44,7 @@
         }
       ],
       "expo-web-browser",
-      "expo-font",
-      [
-        "expo-audio",
-        {
-          "microphonePermission": "Allow Mockingbird to access your microphone to practice speaking."
-        }
-      ]
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,
