@@ -113,6 +113,18 @@ export function useVoiceRecorder(): VoiceRecorder {
     if (recordingUri) void new Audio(recordingUri).play();
   }, [recordingUri]);
 
+  const getRecordingBase64 = useCallback(async () => {
+    if (!recordingUri) return null;
+    const blob = await fetch(recordingUri).then((r) => r.blob());
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(String(reader.result).split(",")[1] ?? "");
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+    return { base64, mime: blob.type || "audio/webm" };
+  }, [recordingUri]);
+
   useEffect(() => {
     return () => {
       if (recorderRef.current?.state === "recording") recorderRef.current.stop();
@@ -124,5 +136,5 @@ export function useVoiceRecorder(): VoiceRecorder {
     };
   }, [stopStream]);
 
-  return { isRecording, recordingUri, error, supported, permission, requestPermission, toggle, clear, play };
+  return { isRecording, recordingUri, error, supported, permission, requestPermission, toggle, clear, play, getRecordingBase64 };
 }

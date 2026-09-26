@@ -24,4 +24,6 @@ export interface VoiceRecorder {
   clear: () => void;
   /** Play back the current recording. */
   play: () => void;
+  /** Read the current recording as base64 for upload, or null if there is none. */
+  getRecordingBase64: () => Promise<{ base64: string; mime: string } | null>;
 }

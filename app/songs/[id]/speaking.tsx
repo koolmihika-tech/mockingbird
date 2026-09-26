@@ -8,6 +8,7 @@ import { AppScaffold } from "../../../components/AppScaffold";
 import { useAppTheme, type AppTheme } from "../../../constants/theme";
 import { SONGS } from "../../../data/songs";
 import { useVoiceRecorder } from "../../../hooks/useVoiceRecorder";
+import { transcribeIpa } from "../../../Supabase/services/transcription";
 
 /** Per-song speaking practice — pick a random lyric line, record yourself
  *  saying it, and play the recording back. Set up like the per-song
@@ -26,8 +27,44 @@ export default function SongSpeakingScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { isRecording, recordingUri, error: recordError, supported, permission, requestPermission, toggle, clear, play } =
-    useVoiceRecorder();
+  const {
+    isRecording,
+    recordingUri,
+    error: recordError,
+    supported,
+    permission,
+    requestPermission,
+    toggle,
+    clear,
+    play,
+    getRecordingBase64,
+  } = useVoiceRecorder();
+
+  // IPA transcription of the current recording (what was actually said).
+  const [transcribing, setTranscribing] = useState(false);
+  const [spokenIpa, setSpokenIpa] = useState<string | null>(null);
+  const [transcribeError, setTranscribeError] = useState<string | null>(null);
+
+  // A new (or discarded) recording invalidates the previous transcription.
+  useEffect(() => {
+    setSpokenIpa(null);
+    setTranscribeError(null);
+  }, [recordingUri]);
+
+  const checkAccuracy = useCallback(async () => {
+    setTranscribing(true);
+    setTranscribeError(null);
+    setSpokenIpa(null);
+    try {
+      const audio = await getRecordingBase64();
+      if (!audio) throw new Error("No recording to check.");
+      setSpokenIpa(await transcribeIpa(audio.base64, audio.mime));
+    } catch (e: any) {
+      setTranscribeError(e?.message ?? "Could not transcribe recording.");
+    } finally {
+      setTranscribing(false);
+    }
+  }, [getRecordingBase64]);
 
   // In-app explainer shown before the system mic prompt (or, if access was
   // turned off, pointing the user to Settings).
@@ -144,7 +181,7 @@ export default function SongSpeakingScreen() {
             <Surface style={styles.recordBox} elevation={1}>
               <Pressable
                 onPress={onMicPress}
-                disabled={!supported}
+                disabled={!supported || transcribing}
                 style={({ pressed }) => [
                   styles.micButton,
                   isRecording && styles.micButtonActive,
@@ -184,9 +221,14 @@ export default function SongSpeakingScreen() {
                       Play back
                     </Text>
                   </Pressable>
-                  {/* TODO: hook up accuracy scoring. */}
                   <Pressable
-                    style={({ pressed }) => [styles.recordAction, pressed && { opacity: 0.7 }]}
+                    onPress={checkAccuracy}
+                    disabled={transcribing}
+                    style={({ pressed }) => [
+                      styles.recordAction,
+                      pressed && { opacity: 0.7 },
+                      transcribing && { opacity: 0.4 },
+                    ]}
                     hitSlop={6}
                   >
                     <MaterialCommunityIcons name="waveform" size={18} color={theme.colors.primary} />
@@ -203,11 +245,28 @@ export default function SongSpeakingScreen() {
               <Text variant="titleMedium" style={styles.sectionHeader}>
                 Accuracy
               </Text>
-              <Text variant="bodySmall" style={styles.accuracyHint}>
-                {recordingUri
-                  ? "Tap “Check accuracy” to score your recording."
-                  : "Record the line above to see how close your pronunciation is."}
-              </Text>
+              {transcribing ? (
+                <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 20 }} />
+              ) : transcribeError ? (
+                <Text variant="bodyMedium" style={styles.recordError}>
+                  {transcribeError}
+                </Text>
+              ) : spokenIpa !== null ? (
+                <>
+                  <Text variant="labelMedium" style={styles.ipaLabel}>
+                    What we heard (IPA)
+                  </Text>
+                  <Text variant="titleLarge" style={styles.ipaText} selectable>
+                    {spokenIpa ? `/${spokenIpa}/` : "No speech detected — try recording again."}
+                  </Text>
+                </>
+              ) : (
+                <Text variant="bodySmall" style={styles.accuracyHint}>
+                  {recordingUri
+                    ? "Tap “Check accuracy” to score your recording."
+                    : "Record the line above to see how close your pronunciation is."}
+                </Text>
+              )}
             </Surface>
           </>
         )}
@@ -311,6 +370,8 @@ const makeStyles = (theme: AppTheme) =>
       minHeight: 120,
     },
     accuracyHint: { color: theme.colors.onSurfaceVariant, marginTop: 10 },
+    ipaLabel: { color: theme.colors.onSurfaceVariant, marginTop: 12, marginBottom: 4 },
+    ipaText: { color: theme.colors.onSurface, lineHeight: 30 },
 
     modalBox: { marginHorizontal: 24, borderRadius: 28, padding: 24, alignItems: "stretch" },
     modalIcon: {

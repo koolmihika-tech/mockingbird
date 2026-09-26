@@ -6,6 +6,7 @@ import {
   useAudioRecorder,
 } from "expo-audio";
 import type { PermissionResponse } from "expo-audio";
+import { File } from "expo-file-system";
 import { useCallback, useEffect, useState } from "react";
 import { AppState } from "react-native";
 import type { MicPermission, VoiceRecorder } from "./useVoiceRecorder.types";
@@ -93,6 +94,13 @@ export function useVoiceRecorder(): VoiceRecorder {
     player.play();
   }, [player, recordingUri]);
 
+  const getRecordingBase64 = useCallback(async () => {
+    if (!recordingUri) return null;
+    const base64 = await new File(recordingUri).base64();
+    // RecordingPresets.HIGH_QUALITY records .m4a on both iOS and Android.
+    return { base64, mime: "audio/m4a" };
+  }, [recordingUri]);
+
   useEffect(() => {
     return () => {
       if (isRecording) void recorder.stop();
@@ -100,5 +108,5 @@ export function useVoiceRecorder(): VoiceRecorder {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { isRecording, recordingUri, error, supported: true, permission, requestPermission, toggle, clear, play };
+  return { isRecording, recordingUri, error, supported: true, permission, requestPermission, toggle, clear, play, getRecordingBase64 };
 }
