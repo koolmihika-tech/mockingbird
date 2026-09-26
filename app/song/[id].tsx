@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Dimensions,
@@ -11,7 +11,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import { ActivityIndicator, Surface, Text } from "react-native-paper";
+import { ActivityIndicator, Button, Surface, Text } from "react-native-paper";
 import YoutubePlayer, { YoutubeIframeRef } from "react-native-youtube-iframe";
 import { getLyrics, parseSyncedLyrics } from "../../api/lrclib";
 import { AppScaffold } from "../../components/AppScaffold";
@@ -184,6 +184,7 @@ function SyncedLyricsView({ lines, activeLine, onLinePress, vocab, onWordPress, 
 export default function SongPlayerScreen() {
   const theme = useAppTheme();
   const styles = makeStyles(theme);
+  const router = useRouter();
   const { user } = useSupabaseAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const song = SONGS.find((s) => s.id === id);
@@ -319,6 +320,20 @@ export default function SongPlayerScreen() {
             <FlashCardCarousel entries={vocabEntries} color={song.coverColor} />
           </View>
         )}
+
+        <Button
+          mode="contained"
+          icon="arrow-right"
+          contentStyle={styles.nextBtnContent}
+          style={styles.nextBtn}
+          onPress={() => {
+            // Stop the video so it doesn't keep playing behind the next screen.
+            setPlaying(false);
+            router.push(`/songs/${song.id}` as any);
+          }}
+        >
+          Next
+        </Button>
       </ScrollView>
 
       {activeDefinition && (
@@ -395,6 +410,9 @@ const makeStyles = (theme: AppTheme) =>
     definitionText: { color: theme.colors.onSurface, fontFamily: "Nunito_400Regular", fontSize: 12 },
 
     flashcardsSection: { width: "100%", marginBottom: 28 },
+
+    nextBtn: { alignSelf: "stretch", borderRadius: 999 },
+    nextBtnContent: { flexDirection: "row-reverse", paddingVertical: 6 },
 
     notFound: { color: theme.colors.onSurface, padding: 24 },
   });

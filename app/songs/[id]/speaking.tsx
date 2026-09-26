@@ -173,17 +173,41 @@ export default function SongSpeakingScreen() {
                 </Text>
               )}
               {recordingUri && !isRecording && (
-                <Pressable
-                  onPress={play}
-                  style={({ pressed }) => [styles.recordAction, pressed && { opacity: 0.7 }]}
-                  hitSlop={6}
-                >
-                  <MaterialCommunityIcons name="play-circle" size={18} color={theme.colors.primary} />
-                  <Text variant="labelLarge" style={{ color: theme.colors.primary }}>
-                    Play back
-                  </Text>
-                </Pressable>
+                <View style={styles.recordActions}>
+                  <Pressable
+                    onPress={play}
+                    style={({ pressed }) => [styles.recordAction, pressed && { opacity: 0.7 }]}
+                    hitSlop={6}
+                  >
+                    <MaterialCommunityIcons name="play-circle" size={18} color={theme.colors.primary} />
+                    <Text variant="labelLarge" style={{ color: theme.colors.primary }}>
+                      Play back
+                    </Text>
+                  </Pressable>
+                  {/* TODO: hook up accuracy scoring. */}
+                  <Pressable
+                    style={({ pressed }) => [styles.recordAction, pressed && { opacity: 0.7 }]}
+                    hitSlop={6}
+                  >
+                    <MaterialCommunityIcons name="waveform" size={18} color={theme.colors.primary} />
+                    <Text variant="labelLarge" style={{ color: theme.colors.primary }}>
+                      Check accuracy
+                    </Text>
+                  </Pressable>
+                </View>
               )}
+            </Surface>
+
+            {/* Accuracy box */}
+            <Surface style={styles.accuracyBox} elevation={1}>
+              <Text variant="titleMedium" style={styles.sectionHeader}>
+                Accuracy
+              </Text>
+              <Text variant="bodySmall" style={styles.accuracyHint}>
+                {recordingUri
+                  ? "Tap “Check accuracy” to score your recording."
+                  : "Record the line above to see how close your pronunciation is."}
+              </Text>
             </Surface>
           </>
         )}
@@ -262,6 +286,7 @@ const makeStyles = (theme: AppTheme) =>
       paddingHorizontal: 16,
       alignItems: "center",
       gap: 14,
+      marginBottom: 20,
     },
     micButton: {
       width: 72,
@@ -275,7 +300,17 @@ const makeStyles = (theme: AppTheme) =>
     micButtonDisabled: { backgroundColor: theme.colors.surfaceVariant },
     micLabel: { color: theme.colors.onSurfaceVariant, fontWeight: "600" },
     recordError: { color: theme.colors.error, textAlign: "center", marginTop: 8 },
+    recordActions: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 18 },
     recordAction: { flexDirection: "row", alignItems: "center", gap: 6 },
+
+    accuracyBox: {
+      width: "100%",
+      backgroundColor: theme.colors.surface,
+      borderRadius: 16,
+      padding: 20,
+      minHeight: 120,
+    },
+    accuracyHint: { color: theme.colors.onSurfaceVariant, marginTop: 10 },
 
     modalBox: { marginHorizontal: 24, borderRadius: 28, padding: 24, alignItems: "stretch" },
     modalIcon: {
