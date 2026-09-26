@@ -7,40 +7,39 @@ import { AppScaffold } from "../../components/AppScaffold";
 import { useAppTheme } from "../../constants/theme";
 import { useSupabaseAuth } from "../../context/SupabaseAuth";
 import { SONGS as PLACEHOLDER_SONGS } from "../../data/songs";
-import { fetchStartedSongIds } from "../../Supabase/services/activityHistory";
+import { fetchUserLevel, type Level } from "../../Supabase/services/levels";
 
 export default function SongsScreen() {
   const theme = useAppTheme();
   const router = useRouter();
   const { user } = useSupabaseAuth();
-  const [startedIds, setStartedIds] = useState<Set<string>>(new Set());
-  const [loadingStarted, setLoadingStarted] = useState(true);
+  const [userLevel, setUserLevel] = useState<Level | null>(null);
+  const [loadingLevel, setLoadingLevel] = useState(true);
 
   useEffect(() => {
     if (!user) {
-      setStartedIds(new Set());
-      setLoadingStarted(false);
+      setLoadingLevel(false);
       return;
     }
-    fetchStartedSongIds(user.id)
-      .then(setStartedIds)
-      .catch(() => setStartedIds(new Set()))
-      .finally(() => setLoadingStarted(false));
+    fetchUserLevel(user.id)
+      .then(setUserLevel)
+      .catch(() => setUserLevel(null))
+      .finally(() => setLoadingLevel(false));
   }, [user]);
 
-  const visibleSongs = useMemo(
-    () => PLACEHOLDER_SONGS.filter((song) => startedIds.has(song.id)),
-    [startedIds]
-  );
+  const visibleSongs = useMemo(() => {
+    if (!userLevel) return PLACEHOLDER_SONGS;
+    return PLACEHOLDER_SONGS.filter((song) => song.level === userLevel.level_name);
+  }, [userLevel]);
 
   return (
     <AppScaffold title="Songs">
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {loadingStarted ? (
+        {loadingLevel ? (
           <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 20 }} />
         ) : visibleSongs.length === 0 ? (
           <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-            You haven&apos;t started any songs yet.
+            No songs available for your level yet.
           </Text>
         ) : (
           visibleSongs.map((song) => (
