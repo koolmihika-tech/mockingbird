@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { audioBase64, mime } = await req.json();
+    const { audioBase64, mime, target } = await req.json();
 
     if (typeof audioBase64 !== "string" || !audioBase64) {
       return json({ error: "audioBase64 (string) is required" }, 400);
@@ -45,6 +45,8 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         audio_b64: audioBase64,
         mime: typeof mime === "string" && mime ? mime : "audio/m4a",
+        // Optional lyric line — when sent, the service also scores the clip.
+        target_text: typeof target === "string" && target.trim() ? target : undefined,
       }),
     });
 

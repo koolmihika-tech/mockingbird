@@ -5,10 +5,11 @@ import { Linking, Platform, Pressable, ScrollView, StyleSheet, View } from "reac
 import { ActivityIndicator, Button, Modal, Portal, Surface, Text } from "react-native-paper";
 import { getLyrics, parseSyncedLyrics } from "../../../api/lrclib";
 import { AppScaffold } from "../../../components/AppScaffold";
+import { PronunciationResult } from "../../../components/PronunciationResult";
 import { useAppTheme, type AppTheme } from "../../../constants/theme";
 import { SONGS } from "../../../data/songs";
 import { useVoiceRecorder } from "../../../hooks/useVoiceRecorder";
-import { transcribeIpa } from "../../../Supabase/services/transcription";
+import { assessPronunciation, type PronunciationResult as Assessment } from "../../../Supabase/services/transcription";
 
 /** Per-song speaking practice — pick a random lyric line, record yourself
  *  saying it, and play the recording back. Set up like the per-song
@@ -40,31 +41,32 @@ export default function SongSpeakingScreen() {
     getRecordingBase64,
   } = useVoiceRecorder();
 
-  // IPA transcription of the current recording (what was actually said).
+  // Accuracy of the current recording against the lyric line.
   const [transcribing, setTranscribing] = useState(false);
-  const [spokenIpa, setSpokenIpa] = useState<string | null>(null);
+  const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [transcribeError, setTranscribeError] = useState<string | null>(null);
 
-  // A new (or discarded) recording invalidates the previous transcription.
+  // A new (or discarded) recording invalidates the previous result.
   useEffect(() => {
-    setSpokenIpa(null);
+    setAssessment(null);
     setTranscribeError(null);
   }, [recordingUri]);
 
   const checkAccuracy = useCallback(async () => {
+    if (!lyric) return;
     setTranscribing(true);
     setTranscribeError(null);
-    setSpokenIpa(null);
+    setAssessment(null);
     try {
       const audio = await getRecordingBase64();
       if (!audio) throw new Error("No recording to check.");
-      setSpokenIpa(await transcribeIpa(audio.base64, audio.mime));
+      setAssessment(await assessPronunciation(lyric, audio.base64, audio.mime));
     } catch (e: any) {
-      setTranscribeError(e?.message ?? "Could not transcribe recording.");
+      setTranscribeError(e?.message ?? "Could not check accuracy.");
     } finally {
       setTranscribing(false);
     }
-  }, [getRecordingBase64]);
+  }, [lyric, getRecordingBase64]);
 
   // In-app explainer shown before the system mic prompt (or, if access was
   // turned off, pointing the user to Settings).
@@ -251,15 +253,8 @@ export default function SongSpeakingScreen() {
                 <Text variant="bodyMedium" style={styles.recordError}>
                   {transcribeError}
                 </Text>
-              ) : spokenIpa !== null ? (
-                <>
-                  <Text variant="labelMedium" style={styles.ipaLabel}>
-                    What we heard (IPA)
-                  </Text>
-                  <Text variant="titleLarge" style={styles.ipaText} selectable>
-                    {spokenIpa ? `/${spokenIpa}/` : "No speech detected — try recording again."}
-                  </Text>
-                </>
+              ) : assessment ? (
+                <PronunciationResult result={assessment} />
               ) : (
                 <Text variant="bodySmall" style={styles.accuracyHint}>
                   {recordingUri
@@ -370,8 +365,6 @@ const makeStyles = (theme: AppTheme) =>
       minHeight: 120,
     },
     accuracyHint: { color: theme.colors.onSurfaceVariant, marginTop: 10 },
-    ipaLabel: { color: theme.colors.onSurfaceVariant, marginTop: 12, marginBottom: 4 },
-    ipaText: { color: theme.colors.onSurface, lineHeight: 30 },
 
     modalBox: { marginHorizontal: 24, borderRadius: 28, padding: 24, alignItems: "stretch" },
     modalIcon: {

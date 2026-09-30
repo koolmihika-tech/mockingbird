@@ -18,8 +18,29 @@ app (speaking.tsx, "Check accuracy")
 - **Fine-tuning:** multilingual Common Voice, labeled with `espeak-ng` IPA (Spanish is a training language)
 - **Paper:** Xu, Baevski & Auli, *Simple and Effective Zero-shot Cross-lingual Phoneme Recognition* (arXiv 2109.11680)
 
-No Spanish-specific phone error rate is published; measure on the Common
-Voice Spanish test split before trusting scores built on top of this.
+No Spanish-specific phone error rate is published, so we measure it
+ourselves — see **Accuracy check** below.
+
+## Accuracy check (Common Voice Spanish)
+
+`eval_common_voice_es.py` runs the model on a fixed-seed random sample of the
+Common Voice 17.0 Spanish **test** split and reports phone error rate (PER)
+against the `espeak-ng` IPA of each clip's sentence, for both the Castilian
+(`es`) and Latin American (`es-419`) espeak voices, plus the most common
+substitutions.
+
+```bash
+modal run ml/pronunciation/eval_common_voice_es.py            # 500 clips, seed 0
+modal run ml/pronunciation/eval_common_voice_es.py --n 2000 --seed 1
+```
+
+Results land in `ml/pronunciation/eval/` (`.json` summary, `.csv` per clip).
+
+- **Data source:** Mozilla moved Common Voice off Hugging Face, so this reads
+  the CC0 parquet mirror `fixie-ai/common_voice_17_0` (15,857 Spanish test clips).
+- **Optimistic bound:** CV splits are only speaker-disjoint *within* a release;
+  the model was fine-tuned on an older release, so some test clips may overlap
+  its training data. And this is clean native read speech, not learners.
 
 ## Setup
 

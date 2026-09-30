@@ -1,0 +1,150 @@
+{
+  "model": "facebook/wav2vec2-xlsr-53-espeak-cv-ft",
+  "dataset": "fixie-ai/common_voice_17_0 (Common Voice 17.0, es, test)",
+  "n_requested": 500,
+  "n_scored": 500,
+  "n_skipped": 0,
+  "seed": 0,
+  "voices": {
+    "es": {
+      "per_percent": 13.45,
+      "median_clip_per_percent": 11.36,
+      "ref_phones": 24675,
+      "substitutions": 2236,
+      "deletions": 744,
+      "insertions": 338,
+      "top_substitutions": [
+        [
+          "ɾ→r",
+          288
+        ],
+        [
+          "θ→s",
+          145
+        ],
+        [
+          "ð→d",
+          114
+        ],
+        [
+          "e→ɛ",
+          90
+        ],
+        [
+          "β→v",
+          72
+        ],
+        [
+          "β→b",
+          71
+        ],
+        [
+          "ɣ→ɡ",
+          56
+        ],
+        [
+          "m→n",
+          53
+        ],
+        [
+          "ɛ→e",
+          50
+        ],
+        [
+          "e→i",
+          43
+        ],
+        [
+          "j→i",
+          42
+        ],
+        [
+          "a→ɐ",
+          39
+        ],
+        [
+          "a→e",
+          29
+        ],
+        [
+          "x→h",
+          26
+        ],
+        [
+          "s→z",
+          26
+        ]
+      ]
+    },
+    "es-419": {
+      "per_percent": 14.17,
+      "median_clip_per_percent": 12.0,
+      "ref_phones": 24717,
+      "substitutions": 2386,
+      "deletions": 782,
+      "insertions": 334,
+      "top_substitutions": [
+        [
+          "s→θ",
+          290
+        ],
+        [
+          "ɾ→r",
+          288
+        ],
+        [
+          "ð→d",
+          114
+        ],
+        [
+          "e→ɛ",
+          90
+        ],
+        [
+          "β→v",
+          72
+        ],
+        [
+          "β→b",
+          71
+        ],
+        [
+          "ɣ→ɡ",
+          56
+        ],
+        [
+          "m→n",
+          53
+        ],
+        [
+          "ɛ→e",
+          50
+        ],
+        [
+          "e→i",
+          43
+        ],
+        [
+          "j→i",
+          42
+        ],
+        [
+          "a→ɐ",
+          37
+        ],
+        [
+          "s→z",
+          32
+        ],
+        [
+          "a→e",
+          29
+        ],
+        [
+          "x→h",
+          26
+        ]
+      ]
+    }
+  }
+}
