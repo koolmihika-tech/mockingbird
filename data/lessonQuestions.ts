@@ -38,7 +38,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         questions: [
           {
             type: "multiple_choice",
-            prompt: "'¿Cómo te llamas?' ¿Qué signo de puntuación debe ir al principio de esta pregunta en español?",
+            prompt: "'¿Cómo te llamas?' Which punctuation mark goes at the beginning of this question in Spanish?",
             targetWord: "¿",
             options: ["¿", "¡", ".", ","],
             answer: "¿",
@@ -46,14 +46,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración con el signo correcto: '____Cómo estás?'",
+            prompt: "Complete the sentence with the correct punctuation mark: '____Cómo estás?'",
             targetWord: "¿",
             answer: "¿",
             category: "grammar",
           },
           {
             type: "multiple_choice",
-            prompt: "Ana dice: «¡Hola! ¿Cómo estás?» ¿Qué significa 'Hola'?",
+            prompt: "Ana says: «¡Hola! ¿Cómo estás?» What does 'Hola' mean?",
             targetWord: "hola",
             options: ["Hello", "Goodbye", "Thank you", "Please"],
             answer: "Hello",
@@ -61,7 +61,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "multiple_choice",
-            prompt: "Completa la oración: Al despedirte de un amigo, dices: '____, nos vemos mañana.'",
+            prompt: "Complete the sentence. When saying goodbye to a friend, you say: '____, nos vemos mañana.'",
             targetWord: "adiós",
             options: ["Adiós", "Hola", "Gracias", "Por favor"],
             answer: "Adiós",
@@ -106,7 +106,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         questions: [
           {
             type: "multiple_choice",
-            prompt: "'Nosotros vamos a la fiesta.' ¿A quién se refiere 'nosotros'?",
+            prompt: "'Nosotros vamos a la fiesta.' Who does 'nosotros' refer to?",
             targetWord: "nosotros",
             options: ["We", "I", "You", "They"],
             answer: "We",
@@ -114,14 +114,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: '____ soy estudiante.'",
+            prompt: "Complete the sentence: '____ soy estudiante.' (I am a student.)",
             targetWord: "yo",
             answer: "Yo",
             category: "grammar",
           },
           {
             type: "multiple_choice",
-            prompt: "'La maestra explica la lección.' ¿Qué significa 'la maestra'?",
+            prompt: "'La maestra explica la lección.' What does 'la maestra' mean?",
             targetWord: "la maestra",
             options: ["The teacher", "The student", "The friend", "The mother"],
             answer: "The teacher",
@@ -129,7 +129,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Mi ____ (friend, male) juega fútbol.'",
+            prompt: "Complete the sentence: 'Mi ____ (friend, male) juega fútbol.'",
             targetWord: "amigo",
             answer: "amigo",
             category: "vocab",
@@ -172,7 +172,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         questions: [
           {
             type: "multiple_choice",
-            prompt: "'Tú eres muy amable.' ¿Qué significa 'eres'?",
+            prompt: "'Tú eres muy amable.' What does 'eres' mean?",
             targetWord: "eres",
             options: ["You are", "I am", "He is", "We are"],
             answer: "You are",
@@ -180,14 +180,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Yo ____ de México.'",
+            prompt: "Complete the sentence: 'Yo ____ de México.' (I am from Mexico.)",
             targetWord: "soy",
             answer: "soy",
             category: "grammar",
           },
           {
             type: "multiple_choice",
-            prompt: "'Ella es muy amable.' ¿Qué significa 'amable'?",
+            prompt: "'Ella es muy amable.' What does 'amable' mean?",
             targetWord: "amable",
             options: ["Kind", "Tall", "Tired", "Funny"],
             answer: "Kind",
@@ -195,7 +195,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Mi amigo es muy ____ (funny).'",
+            prompt: "Complete the sentence: 'Mi amigo es muy ____ (funny).'",
             targetWord: "gracioso",
             answer: "gracioso",
             category: "vocab",
@@ -238,7 +238,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         questions: [
           {
             type: "multiple_choice",
-            prompt: "'Tengo un libro' vs. 'Tengo dos libros.' ¿Por qué 'libros' lleva una -s?",
+            prompt: "'Tengo un libro' vs. 'Tengo dos libros.' Why does 'libros' end in -s?",
             targetWord: "libros",
             options: [
               "Because it's plural after a number greater than one",
@@ -251,14 +251,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Tengo tres ____ (perro → forma plural).'",
+            prompt: "Complete the sentence: 'Tengo tres ____ (perro → plural form).'",
             targetWord: "perros",
             answer: "perros",
             category: "grammar",
           },
           {
             type: "multiple_choice",
-            prompt: "'Tengo quince años.' ¿Qué número es 'quince'?",
+            prompt: "'Tengo quince años.' What number is 'quince'?",
             targetWord: "quince",
             options: ["15", "5", "10", "20"],
             answer: "15",
@@ -266,7 +266,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Hay ____ (7) días en una semana.'",
+            prompt: "Complete the sentence: 'Hay ____ (7) días en una semana.'",
             targetWord: "siete",
             answer: "siete",
             category: "vocab",
@@ -274,14 +274,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           {
             type: "short_answer",
             prompt: "Write a sentence with a number greater than one and the correctly pluralized noun that follows it.",
-            targetWord: "número + plural",
+            targetWord: "number + plural",
             answer: "Tengo cinco hermanos.",
             category: "grammar",
           },
           {
             type: "short_answer",
             prompt: "Write two sentences, each with a different number and a correctly pluralized noun.",
-            targetWord: "número + plural",
+            targetWord: "number + plural",
             answer: "Hay ocho mesas. Tengo dos gatos.",
             category: "grammar",
           },
@@ -315,7 +315,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         questions: [
           {
             type: "multiple_choice",
-            prompt: "¿Qué significa '¿Cómo te llamas?'?",
+            prompt: "What does '¿Cómo te llamas?' mean?",
             targetWord: "cómo te llamas",
             options: ["What's your name?", "How are you?", "Where are you from?", "How old are you?"],
             answer: "What's your name?",
@@ -323,14 +323,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: '____ Ana.' (My name is Ana)",
+            prompt: "Complete the sentence: '____ Ana.' (My name is Ana)",
             targetWord: "me llamo",
             answer: "Me llamo",
             category: "grammar",
           },
           {
             type: "multiple_choice",
-            prompt: "'¿Cuántos años tienes?' ¿Qué significa 'cuántos'?",
+            prompt: "'¿Cuántos años tienes?' What does 'cuántos' mean?",
             targetWord: "cuántos",
             options: ["How many / how old", "What", "Where", "Why"],
             answer: "How many / how old",
@@ -338,7 +338,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Mi ____ (name) es Carlos.'",
+            prompt: "Complete the sentence: 'Mi ____ (name) es Carlos.'",
             targetWord: "nombre",
             answer: "nombre",
             category: "vocab",
@@ -381,7 +381,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         questions: [
           {
             type: "multiple_choice",
-            prompt: "'Él es mexicano' pero 'Ella es mexicana.' ¿Por qué cambia la palabra?",
+            prompt: "'Él es mexicano' but 'Ella es mexicana.' Why does the word change?",
             targetWord: "mexicana",
             options: [
               "Nationality adjectives agree with gender",
@@ -394,14 +394,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Mi papá es francés y mi mamá es franc____.'",
+            prompt: "Complete the sentence: 'Mi papá es francés y mi mamá es franc____.'",
             targetWord: "francesa",
             answer: "francesa",
             category: "grammar",
           },
           {
             type: "multiple_choice",
-            prompt: "'Ella es mexicana.' ¿De dónde es ella?",
+            prompt: "'Ella es mexicana.' Where is she from?",
             targetWord: "mexicana",
             options: ["Mexico", "Spain", "Colombia", "Peru"],
             answer: "Mexico",
@@ -409,7 +409,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Soy de Estados Unidos, soy ____.'",
+            prompt: "Complete the sentence: 'Soy de Estados Unidos, soy ____.' (I'm from the United States, I'm ____.)",
             targetWord: "estadounidense",
             answer: "estadounidense",
             category: "vocab",
@@ -418,14 +418,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             type: "short_answer",
             prompt:
               "Write a sentence about a male friend and a sentence about a female friend, using the correctly gendered nationality adjective for each.",
-            targetWord: "concordancia de nacionalidad",
+            targetWord: "nationality agreement",
             answer: "Mi amigo es colombiano. Mi amiga es colombiana.",
             category: "grammar",
           },
           {
             type: "short_answer",
             prompt: "Write two sentences describing the nationalities of your mother and father, making the adjectives agree.",
-            targetWord: "concordancia de nacionalidad",
+            targetWord: "nationality agreement",
             answer: "Mi mamá es peruana. Mi papá es peruano.",
             category: "grammar",
           },
@@ -453,7 +453,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         questions: [
           {
             type: "multiple_choice",
-            prompt: "'Ella es maestra.' ¿Por qué no se usa 'una' antes de 'maestra'?",
+            prompt: "'Ella es maestra.' Why isn't 'una' used before 'maestra'?",
             targetWord: "es maestra",
             options: [
               "Spanish usually drops the article before an unmodified profession after ser",
@@ -466,14 +466,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración (sin artículo): 'Mi tío ____ (ser) ingeniero.'",
+            prompt: "Complete the sentence (no article): 'Mi tío ____ (ser) ingeniero.'",
             targetWord: "es",
             answer: "es",
             category: "grammar",
           },
           {
             type: "multiple_choice",
-            prompt: "'Mi papá es doctor.' ¿Qué hace un doctor?",
+            prompt: "'Mi papá es doctor.' What does a doctor do?",
             targetWord: "doctor",
             options: ["Heals people", "Teaches students", "Cooks food", "Drives a bus"],
             answer: "Heals people",
@@ -481,7 +481,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Mi mamá trabaja en un hospital; ella es ____.'",
+            prompt: "Complete the sentence: 'Mi mamá trabaja en un hospital; ella es ____.' (My mom works in a hospital; she is a ____.)",
             targetWord: "doctora / enfermera",
             answer: "doctora",
             category: "vocab",
@@ -489,14 +489,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           {
             type: "short_answer",
             prompt: "Write a sentence stating someone's profession with 'ser', without using an article before the job word.",
-            targetWord: "ser + profesión",
+            targetWord: "ser + profession",
             answer: "Mi vecina es doctora.",
             category: "grammar",
           },
           {
             type: "short_answer",
             prompt: "Write two sentences about two people's professions, both without an article after 'ser'.",
-            targetWord: "ser + profesión",
+            targetWord: "ser + profession",
             answer: "Mi papá es abogado. Mi prima es enfermera.",
             category: "grammar",
           },
@@ -524,7 +524,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         questions: [
           {
             type: "multiple_choice",
-            prompt: "'Hoy es lunes.' ¿Por qué 'lunes' se escribe con minúscula en español?",
+            prompt: "'Hoy es lunes.' Why is 'lunes' written in lowercase in Spanish?",
             targetWord: "lunes",
             options: [
               "Days of the week aren't capitalized in Spanish",
@@ -537,14 +537,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración (con minúscula): 'Mi clase favorita es los ____ (Fridays).'",
+            prompt: "Complete the sentence (in lowercase): 'Mi clase favorita es los ____ (Fridays).'",
             targetWord: "viernes",
             answer: "viernes",
             category: "grammar",
           },
           {
             type: "multiple_choice",
-            prompt: "'Mi cumpleaños es en marzo.' ¿Qué es 'marzo'?",
+            prompt: "'Mi cumpleaños es en marzo.' What is 'marzo'?",
             targetWord: "marzo",
             options: ["A month", "A day", "A season", "A number"],
             answer: "A month",
@@ -552,7 +552,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Hoy es ____ (Monday).'",
+            prompt: "Complete the sentence: 'Hoy es ____ (Monday).'",
             targetWord: "lunes",
             answer: "lunes",
             category: "vocab",
@@ -560,14 +560,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           {
             type: "short_answer",
             prompt: "Write a sentence naming a day of the week, keeping it lowercase as Spanish requires.",
-            targetWord: "día (minúscula)",
+            targetWord: "día (lowercase)",
             answer: "Mañana es sábado.",
             category: "grammar",
           },
           {
             type: "short_answer",
             prompt: "Write two sentences, one naming a month and one naming a day, both in lowercase.",
-            targetWord: "mes / día (minúscula)",
+            targetWord: "mes / día (lowercase)",
             answer: "Mi mes favorito es diciembre. Hoy es martes.",
             category: "grammar",
           },
@@ -601,7 +601,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         questions: [
           {
             type: "multiple_choice",
-            prompt: "'La manzana es roja' pero 'El carro es rojo.' ¿Por qué cambia 'rojo/roja'?",
+            prompt: "'La manzana es roja' but 'El carro es rojo.' Why does 'rojo/roja' change?",
             targetWord: "roja",
             options: [
               "Color adjectives agree with the noun's gender",
@@ -614,14 +614,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Las flores son ____ (yellow, plural feminine).'",
+            prompt: "Complete the sentence: 'Las flores son ____ (yellow, plural feminine).'",
             targetWord: "amarillas",
             answer: "amarillas",
             category: "grammar",
           },
           {
             type: "multiple_choice",
-            prompt: "'El cielo es azul.' ¿Qué color es 'azul'?",
+            prompt: "'El cielo es azul.' What color is 'azul'?",
             targetWord: "azul",
             options: ["Blue", "Red", "Green", "Yellow"],
             answer: "Blue",
@@ -629,7 +629,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'La manzana es ____ (red).'",
+            prompt: "Complete the sentence: 'La manzana es ____ (red).'",
             targetWord: "roja",
             answer: "roja",
             category: "vocab",
@@ -637,14 +637,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           {
             type: "short_answer",
             prompt: "Write a sentence describing a feminine plural noun with a correctly agreeing color adjective.",
-            targetWord: "concordancia de color",
+            targetWord: "color agreement",
             answer: "Las sillas son azules.",
             category: "grammar",
           },
           {
             type: "short_answer",
             prompt: "Write two sentences, each describing a different noun with a color adjective that correctly agrees in gender and number.",
-            targetWord: "concordancia de color",
+            targetWord: "color agreement",
             answer: "El perro es negro. Las paredes son blancas.",
             category: "grammar",
           },
@@ -672,7 +672,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         questions: [
           {
             type: "multiple_choice",
-            prompt: "'La cama' y 'el sofá.' ¿Qué determina si usamos 'el' o 'la'?",
+            prompt: "'La cama' and 'el sofá.' What decides whether we use 'el' or 'la'?",
             targetWord: "el/la",
             options: [
               "The grammatical gender of the noun",
@@ -685,14 +685,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración con el artículo correcto: '____ (the, masculine) refrigerador está en la cocina.'",
+            prompt: "Complete the sentence with the correct article: '____ (the, masculine) refrigerador está en la cocina.'",
             targetWord: "el",
             answer: "El",
             category: "grammar",
           },
           {
             type: "multiple_choice",
-            prompt: "'Duermo en la cama.' ¿Qué es 'la cama'?",
+            prompt: "'Duermo en la cama.' What is 'la cama'?",
             targetWord: "la cama",
             options: ["The bed", "The table", "The chair", "The door"],
             answer: "The bed",
@@ -700,7 +700,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Como en la ____ (table).'",
+            prompt: "Complete the sentence: 'Como en la ____ (table).'",
             targetWord: "mesa",
             answer: "mesa",
             category: "vocab",
@@ -743,7 +743,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         questions: [
           {
             type: "multiple_choice",
-            prompt: "'Tengo un lápiz' y 'Tengo una pluma.' ¿Qué determina 'un' o 'una'?",
+            prompt: "'Tengo un lápiz' and 'Tengo una pluma.' What decides 'un' or 'una'?",
             targetWord: "un/una",
             options: [
               "The grammatical gender of the noun",
@@ -756,14 +756,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración con el artículo correcto: 'Necesito ____ (a, feminine) mochila nueva.'",
+            prompt: "Complete the sentence with the correct article: 'Necesito ____ (a, feminine) mochila nueva.'",
             targetWord: "una",
             answer: "una",
             category: "grammar",
           },
           {
             type: "multiple_choice",
-            prompt: "'Escribo con un lápiz.' ¿Qué es 'un lápiz'?",
+            prompt: "'Escribo con un lápiz.' What is 'un lápiz'?",
             targetWord: "un lápiz",
             options: ["A pencil", "A book", "A backpack", "A desk"],
             answer: "A pencil",
@@ -771,7 +771,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Leo el ____ (book) en clase.'",
+            prompt: "Complete the sentence: 'Leo el ____ (book) en clase.'",
             targetWord: "libro",
             answer: "libro",
             category: "vocab",
@@ -814,7 +814,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         questions: [
           {
             type: "multiple_choice",
-            prompt: "'Hay dos sillas rojas.' ¿Por qué 'rojas' termina en -as?",
+            prompt: "'Hay dos sillas rojas.' Why does 'rojas' end in -as?",
             targetWord: "rojas",
             options: [
               "It agrees with a plural feminine noun",
@@ -827,14 +827,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Hay una casa ____ (bonito).'",
+            prompt: "Complete the sentence: 'Hay una casa ____ (bonito).'",
             targetWord: "bonita",
             answer: "bonita",
             category: "grammar",
           },
           {
             type: "multiple_choice",
-            prompt: "'Hay dos ventanas en mi cuarto.' ¿Qué es 'una ventana'?",
+            prompt: "'Hay dos ventanas en mi cuarto.' What is 'una ventana'?",
             targetWord: "ventana",
             options: ["A window", "A door", "A wall", "A roof"],
             answer: "A window",
@@ -842,7 +842,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Hay una ____ (table) grande en la cocina.'",
+            prompt: "Complete the sentence: 'Hay una ____ (table) grande en la cocina.'",
             targetWord: "mesa",
             answer: "mesa",
             category: "vocab",
@@ -850,7 +850,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           {
             type: "short_answer",
             prompt: "Write a sentence with 'hay' and a correctly agreeing adjective describing objects in a room.",
-            targetWord: "hay + adjetivo",
+            targetWord: "hay + adjective",
             answer: "Hay dos ventanas pequeñas.",
             category: "grammar",
           },
@@ -891,7 +891,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         questions: [
           {
             type: "multiple_choice",
-            prompt: "'La madre de mi papá' — ¿cómo se dice 'my dad's mother' en español?",
+            prompt: "'La madre de mi papá' — how does Spanish say 'my dad's mother'?",
             targetWord: "de",
             options: [
               "Using 'de' instead of an apostrophe-s",
@@ -904,14 +904,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'El perro ____ mi hermano es grande.' (the dog OF my brother)",
+            prompt: "Complete the sentence: 'El perro ____ mi hermano es grande.' (the dog OF my brother)",
             targetWord: "de",
             answer: "de",
             category: "grammar",
           },
           {
             type: "multiple_choice",
-            prompt: "'Mi abuela es la madre de mi papá.' ¿Quién es 'mi abuela'?",
+            prompt: "'Mi abuela es la madre de mi papá.' Who is 'mi abuela'?",
             targetWord: "abuela",
             options: ["My grandmother", "My aunt", "My cousin", "My sister"],
             answer: "My grandmother",
@@ -919,7 +919,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'El hijo de mis padres es mi ____.'",
+            prompt: "Complete the sentence: 'El hijo de mis padres es mi ____.' (My parents' son is my ____.)",
             targetWord: "hermano",
             answer: "hermano",
             category: "vocab",
@@ -962,7 +962,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         questions: [
           {
             type: "multiple_choice",
-            prompt: "'Mi mejor amigo' vs. 'Mi mejor amiga.' ¿Qué cambia entre las dos frases?",
+            prompt: "'Mi mejor amigo' vs. 'Mi mejor amiga.' What changes between the two phrases?",
             targetWord: "amigo/amiga",
             options: [
               "The gender of the friend being described",
@@ -975,14 +975,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Mi mejor ____ (friend, female) vive cerca de mi casa.'",
+            prompt: "Complete the sentence: 'Mi mejor ____ (friend, female) vive cerca de mi casa.'",
             targetWord: "amiga",
             answer: "amiga",
             category: "grammar",
           },
           {
             type: "multiple_choice",
-            prompt: "'Ella es mi mejor amiga.' ¿Qué significa 'mejor amiga'?",
+            prompt: "'Ella es mi mejor amiga.' What does 'mejor amiga' mean?",
             targetWord: "mejor amiga",
             options: ["Best friend", "Neighbor", "Cousin", "Teacher"],
             answer: "Best friend",
@@ -990,7 +990,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Mi vecino es un buen ____ (friend).'",
+            prompt: "Complete the sentence: 'Mi vecino es un buen ____ (friend).'",
             targetWord: "amigo",
             answer: "amigo",
             category: "vocab",
@@ -1033,7 +1033,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         questions: [
           {
             type: "multiple_choice",
-            prompt: "'Nuestra casa es grande.' ¿A quién pertenece la casa?",
+            prompt: "'Nuestra casa es grande.' Who does the house belong to?",
             targetWord: "nuestra",
             options: ["To us", "To me", "To you", "To them"],
             answer: "To us",
@@ -1041,14 +1041,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: '____ (your, informal) perro es bonito.'",
+            prompt: "Complete the sentence: '____ (your, informal) perro es bonito.'",
             targetWord: "tu",
             answer: "Tu",
             category: "grammar",
           },
           {
             type: "multiple_choice",
-            prompt: "'Su carro es nuevo.' ¿Qué es 'un carro'?",
+            prompt: "'Su carro es nuevo.' What is 'un carro'?",
             targetWord: "carro",
             options: ["A car", "A house", "A dog", "A book"],
             answer: "A car",
@@ -1056,7 +1056,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Vivo en mi ____ (house) con mi familia.'",
+            prompt: "Complete the sentence: 'Vivo en mi ____ (house) con mi familia.'",
             targetWord: "casa",
             answer: "casa",
             category: "vocab",
@@ -1099,7 +1099,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
         questions: [
           {
             type: "multiple_choice",
-            prompt: "'Ellos tienen un perro.' ¿Qué significa 'tienen'?",
+            prompt: "'Ellos tienen un perro.' What does 'tienen' mean?",
             targetWord: "tienen",
             options: ["They have", "They are", "They want", "They see"],
             answer: "They have",
@@ -1107,14 +1107,14 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Yo ____ (tener) dos hermanas.'",
+            prompt: "Complete the sentence: 'Yo ____ (tener) dos hermanas.'",
             targetWord: "tengo",
             answer: "tengo",
             category: "grammar",
           },
           {
             type: "multiple_choice",
-            prompt: "'Tengo un primo simpático.' ¿Qué es 'un primo'?",
+            prompt: "'Tengo un primo simpático.' What is 'un primo'?",
             targetWord: "primo",
             options: ["A cousin", "A brother", "A friend", "A neighbor"],
             answer: "A cousin",
@@ -1122,7 +1122,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           },
           {
             type: "fill_blank",
-            prompt: "Completa la oración: 'Mi hermana tiene un ____ (cat).'",
+            prompt: "Complete the sentence: 'Mi hermana tiene un ____ (cat).'",
             targetWord: "gato",
             answer: "gato",
             category: "vocab",
@@ -1130,7 +1130,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
           {
             type: "short_answer",
             prompt: "Write a sentence using 'tener' plus a possessive adjective to describe a family member's belongings.",
-            targetWord: "tener + posesivo",
+            targetWord: "tener + possessive",
             answer: "Mi hermana tiene su propio cuarto.",
             category: "grammar",
           },

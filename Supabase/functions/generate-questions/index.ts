@@ -36,9 +36,10 @@ function buildPrompt(songName: string, words: string[], mode: "reading" | "writi
   if (mode === "reading") {
     return (
       `You are a Spanish-language tutor. Using these vocabulary words from the song "${songName}": ${wordList}, ` +
-      `write ${count} short reading-comprehension questions in Spanish. Each question should use one of the words ` +
-      `in a short context sentence, then ask the learner to identify its meaning. Prefer "multiple_choice" questions ` +
-      `with 3-4 plausible English options, one correct. Some may be "fill_blank" instead.`
+      `write ${count} short reading-comprehension questions. Write every question's instructions in English (e.g. ` +
+      `"What does 'corazón' mean?", "Complete the sentence: ..."); only the short Spanish context sentence that uses ` +
+      `one of the words, and the word itself, should be in Spanish. Prefer "multiple_choice" questions with 3-4 ` +
+      `plausible English options, one correct. Some may be "fill_blank" instead.`
     );
   }
   return (
@@ -55,11 +56,13 @@ function buildTopicPrompt(topic: string, count: number) {
   return (
     `You are a Spanish-language tutor. Create ${count} short practice questions for a learner studying the topic ` +
     `"${topic}". Mix two question types together, interleaved rather than grouped: roughly half should be ` +
-    `"multiple_choice" reading-comprehension questions — a short Spanish sentence using "${topic}", asking the ` +
-    `learner to identify its meaning, with 3-4 plausible options and one correct; the other half should be ` +
+    `"multiple_choice" reading-comprehension questions — a short Spanish sentence using "${topic}", followed by a ` +
+    `question in English asking the learner to identify its meaning, with 3-4 plausible English options and one ` +
+    `correct; the other half should be ` +
     `"short_answer" writing-practice prompts in English, each asking the learner to write one Spanish sentence that ` +
     `correctly uses "${topic}", with a sample correct sentence as the answer. Set "targetWord" to the specific word ` +
-    `or phrase from "${topic}" that each question practices.`
+    `or phrase from "${topic}" that each question practices. Write all question instructions in English; only the ` +
+    `Spanish example sentences and target words should be in Spanish.`
   );
 }
 

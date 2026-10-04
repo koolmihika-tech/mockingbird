@@ -1,8 +1,10 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { Button, Card, Text, TextInput } from "react-native-paper";
+import { ActivityIndicator, Button, Card, Text, TextInput } from "react-native-paper";
 import { useAppTheme } from "../constants/theme";
 import { Question } from "../Supabase/services/questions";
+import { gradeWriting, type WritingGrade, type WritingLevel } from "../Supabase/services/writingGrade";
 
 export function MultipleChoiceCard({
   question,
@@ -123,9 +125,11 @@ export function FillBlankCard({
   );
 }
 
-// Free-production writing prompts aren't auto-gradable, so they're always
-// counted as correct for scoring purposes. onAnswered still fires on reveal
-// (with correct=true) so callers can time how long the learner spent on it.
+// Free-production writing prompts: the learner types their own sentence and
+// it's graded by gradeWriting (rule checks, then Gemini) at three levels.
+// For the boolean onAnswered score, "correct" and "minor" both count as
+// right — minor slips (punctuation, capitalization) shouldn't hurt mastery,
+// and missing accents never count against the learner at all.
 export function ShortAnswerCard({
   question,
   onAnswered,
@@ -134,12 +138,51 @@ export function ShortAnswerCard({
   onAnswered?: (correct: boolean) => void;
 }) {
   const theme = useAppTheme();
-  const [revealed, setRevealed] = useState(false);
+  const [value, setValue] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [grading, setGrading] = useState(false);
+  const [grade, setGrade] = useState<WritingGrade | null>(null);
+  const [gradeError, setGradeError] = useState<string | null>(null);
 
-  function handleReveal() {
-    setRevealed(true);
+  async function runGrade() {
+    setGrading(true);
+    setGradeError(null);
+    try {
+      const result = await gradeWriting(question, value.trim());
+      setGrade(result);
+      onAnswered?.(result.level !== "incorrect");
+    } catch (e: any) {
+      setGradeError(e?.message ?? "Could not check your sentence.");
+    } finally {
+      setGrading(false);
+    }
+  }
+
+  function handleSubmit() {
+    setSubmitted(true);
+    void runGrade();
+  }
+
+  // Grading service unavailable: let the learner move on without a penalty.
+  function skipCheck() {
+    setGradeError(null);
+    setGrade(null);
     onAnswered?.(true);
   }
+
+  const verdict = grade ? VERDICTS[grade.level] : null;
+  const verdictBg =
+    grade?.level === "correct"
+      ? theme.colors.successContainer
+      : grade?.level === "minor"
+      ? theme.colors.streakContainer
+      : theme.colors.errorContainer;
+  const verdictFg =
+    grade?.level === "correct"
+      ? theme.colors.onSuccessContainer
+      : grade?.level === "minor"
+      ? theme.colors.onStreakContainer
+      : theme.colors.onErrorContainer;
 
   return (
     <Card mode="contained" style={[styles.card, { backgroundColor: theme.colors.surfaceVariant }]}>
@@ -150,19 +193,106 @@ export function ShortAnswerCard({
         <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 10 }}>
           Target word: {question.targetWord}
         </Text>
-        {revealed ? (
-          <Text variant="bodyMedium" style={{ color: theme.colors.onSurface, fontStyle: "italic" }}>
-            {question.answer}
-          </Text>
-        ) : (
-          <Button mode="contained-tonal" onPress={handleReveal} style={styles.actionBtn}>
-            Reveal sample answer
+        <TextInput
+          mode="outlined"
+          value={value}
+          onChangeText={setValue}
+          editable={!submitted}
+          placeholder="Write your sentence in Spanish"
+          multiline
+          autoCapitalize="sentences"
+          outlineColor={grade ? verdictFg : undefined}
+          style={[styles.input, styles.sentenceInput]}
+        />
+
+        {!submitted ? (
+          <Button mode="contained" onPress={handleSubmit} disabled={value.trim().length === 0} style={styles.actionBtn}>
+            Submit
           </Button>
+        ) : grading ? (
+          <View style={styles.gradingRow}>
+            <ActivityIndicator size="small" color={theme.colors.primary} />
+            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+              Checking your sentence…
+            </Text>
+          </View>
+        ) : gradeError ? (
+          <View style={styles.feedbackBlock}>
+            <Text variant="bodyMedium" style={{ color: theme.colors.error }}>
+              Couldn&apos;t check your sentence right now.
+            </Text>
+            <View style={styles.retryRow}>
+              <Button mode="contained-tonal" onPress={() => void runGrade()}>
+                Try again
+              </Button>
+              <Button mode="text" onPress={skipCheck}>
+                Skip check
+              </Button>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.feedbackBlock}>
+            {grade && verdict && (
+              <>
+                <View style={[styles.verdictBadge, { backgroundColor: verdictBg }]}>
+                  <MaterialCommunityIcons name={verdict.icon} size={18} color={verdictFg} />
+                  <Text variant="labelLarge" style={{ color: verdictFg, fontWeight: "700" }}>
+                    {verdict.label}
+                  </Text>
+                </View>
+                {!!grade.explanation && (
+                  <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
+                    {grade.explanation}
+                  </Text>
+                )}
+                {grade.errors.length > 0 && (
+                  <View style={styles.errorList}>
+                    {grade.errors.map((err, i) => (
+                      <View key={i} style={styles.errorItem}>
+                        <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
+                          <Text style={[styles.errorWrong, { color: theme.colors.error }]}>{err.text}</Text>
+                          {"  →  "}
+                          <Text style={[styles.errorFix, { color: theme.colors.success }]}>{err.fix}</Text>
+                        </Text>
+                        <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+                          {err.why}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+                {grade.level !== "correct" && !!grade.correctedSentence && (
+                  <View style={styles.sampleBlock}>
+                    <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                      Corrected
+                    </Text>
+                    <Text variant="bodyMedium" style={{ color: theme.colors.onSurface, fontStyle: "italic" }}>
+                      {grade.correctedSentence}
+                    </Text>
+                  </View>
+                )}
+              </>
+            )}
+            <View style={styles.sampleBlock}>
+              <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                Sample answer
+              </Text>
+              <Text variant="bodyMedium" style={{ color: theme.colors.onSurface, fontStyle: "italic" }}>
+                {question.answer}
+              </Text>
+            </View>
+          </View>
         )}
       </Card.Content>
     </Card>
   );
 }
+
+const VERDICTS: Record<WritingLevel, { label: string; icon: keyof typeof MaterialCommunityIcons.glyphMap }> = {
+  correct: { label: "Correct!", icon: "check-circle" },
+  minor: { label: "Almost — minor issues", icon: "alert-circle-outline" },
+  incorrect: { label: "Not quite", icon: "close-circle" },
+};
 
 export function QuestionCard({
   question,
@@ -187,5 +317,23 @@ const styles = StyleSheet.create({
   optionContent: { justifyContent: "flex-start", paddingVertical: 4 },
   optionLabel: { textAlign: "left" },
   input: { marginBottom: 10 },
+  sentenceInput: { minHeight: 80 },
+  sampleBlock: { gap: 2 },
+  gradingRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 4 },
+  feedbackBlock: { gap: 12 },
+  retryRow: { flexDirection: "row", gap: 8 },
+  verdictBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  errorList: { gap: 10 },
+  errorItem: { gap: 2 },
+  errorWrong: { fontWeight: "700", textDecorationLine: "line-through" },
+  errorFix: { fontWeight: "700" },
   actionBtn: { alignSelf: "flex-start" },
 });
