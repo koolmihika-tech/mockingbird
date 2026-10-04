@@ -8,6 +8,7 @@ import { AppScaffold } from "../../../components/AppScaffold";
 import { PronunciationResult } from "../../../components/PronunciationResult";
 import { useAppTheme, type AppTheme } from "../../../constants/theme";
 import { SONGS } from "../../../data/songs";
+import { useSpeakLine } from "../../../hooks/useSpeakLine";
 import { useVoiceRecorder } from "../../../hooks/useVoiceRecorder";
 import { assessPronunciation, type PronunciationResult as Assessment } from "../../../Supabase/services/transcription";
 
@@ -68,15 +69,21 @@ export default function SongSpeakingScreen() {
     }
   }, [lyric, getRecordingBase64]);
 
+  // Reference audio: the lyric line read aloud by a Spanish (Mexico) TTS voice.
+  const { speak, stop: stopSpeech, speaking, hasVoice, voicesLoaded } = useSpeakLine();
+  const [slow, setSlow] = useState(false);
+
   // In-app explainer shown before the system mic prompt (or, if access was
   // turned off, pointing the user to Settings).
   const [permissionPromptOpen, setPermissionPromptOpen] = useState(false);
   const [requestingPermission, setRequestingPermission] = useState(false);
 
   const onMicPress = useCallback(() => {
+    // Don't let the mic pick up the reference voice.
+    stopSpeech();
     if (isRecording || permission === "granted") toggle();
     else setPermissionPromptOpen(true);
-  }, [isRecording, permission, toggle]);
+  }, [isRecording, permission, toggle, stopSpeech]);
 
   const allowMicrophone = useCallback(async () => {
     setRequestingPermission(true);
@@ -164,6 +171,7 @@ export default function SongSpeakingScreen() {
                 </Text>
                 <Pressable
                   onPress={() => {
+                    stopSpeech();
                     if (lines) setLyric(pickRandomLine(lines));
                     clear();
                   }}
@@ -177,6 +185,50 @@ export default function SongSpeakingScreen() {
               <Text variant="headlineSmall" style={styles.lyricText}>
                 {lyric}
               </Text>
+
+              {/* Hear the correct pronunciation */}
+              <View style={styles.listenRow}>
+                <Pressable
+                  onPress={() => (speaking ? stopSpeech() : lyric && speak(lyric, slow))}
+                  disabled={isRecording || !lyric}
+                  style={({ pressed }) => [
+                    styles.listenBtn,
+                    pressed && { opacity: 0.85 },
+                    isRecording && { opacity: 0.4 },
+                  ]}
+                  hitSlop={6}
+                >
+                  <MaterialCommunityIcons
+                    name={speaking ? "stop" : "volume-high"}
+                    size={18}
+                    color={theme.colors.onPrimaryContainer}
+                  />
+                  <Text variant="labelLarge" style={styles.listenBtnText}>
+                    {speaking ? "Stop" : "Listen"}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => setSlow((v) => !v)}
+                  style={({ pressed }) => [styles.slowToggle, slow && styles.slowToggleOn, pressed && { opacity: 0.85 }]}
+                  hitSlop={6}
+                  accessibilityRole="switch"
+                  accessibilityState={{ checked: slow }}
+                >
+                  <MaterialCommunityIcons
+                    name="tortoise"
+                    size={16}
+                    color={slow ? theme.colors.onPrimary : theme.colors.onSurfaceVariant}
+                  />
+                  <Text variant="labelMedium" style={{ color: slow ? theme.colors.onPrimary : theme.colors.onSurfaceVariant }}>
+                    Slow
+                  </Text>
+                </Pressable>
+              </View>
+              {voicesLoaded && !hasVoice && Platform.OS === "android" && (
+                <Text variant="bodySmall" style={styles.voiceHint}>
+                  For the best pronunciation, install a Spanish (Mexico) voice in Settings → Text-to-speech.
+                </Text>
+              )}
             </View>
 
             {/* Record box */}
@@ -331,6 +383,29 @@ const makeStyles = (theme: AppTheme) =>
     sectionHeader: { color: theme.colors.onBackground, fontWeight: "700" },
     shuffleBtn: { padding: 4 },
     lyricText: { color: theme.colors.onSurface, fontWeight: "800", lineHeight: 32 },
+    listenRow: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14 },
+    listenBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      backgroundColor: theme.colors.primaryContainer,
+      borderRadius: 999,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
+    listenBtnText: { color: theme.colors.onPrimaryContainer, fontWeight: "700" },
+    slowToggle: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: theme.colors.outlineVariant,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+    },
+    slowToggleOn: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
+    voiceHint: { color: theme.colors.onSurfaceVariant, marginTop: 8 },
 
     recordBox: {
       width: "100%",

@@ -15,8 +15,10 @@ labels. Paper: Xu, Baevski & Auli, "Simple and Effective Zero-shot
 Cross-lingual Phoneme Recognition" (arXiv 2109.11680). Apache 2.0.
 
   3. if a target lyric line is sent: phonemize it with the model's own espeak
-     phonemizer (voice "es" — same label space as the model's output, and it
-     scored best on the Common Voice check), align the two phone sequences,
+     phonemizer (voice "es-419", Latin American — matches the app's es-MX
+     reference audio and the mostly Latin artists; the Castilian "es" voice
+     scored ~0.7 PER points better on Common Voice, but would expect θ for
+     c/z), align the two phone sequences,
      and score them. Known Spanish allophones / accent variants (b~β, d~ð,
      ɡ~ɣ, θ~s, ...) cost little; any other substitution costs at least half
      a phone, scaled up by articulatory-feature distance (panphon).
@@ -36,6 +38,8 @@ import modal
 
 MODEL_ID = "facebook/wav2vec2-xlsr-53-espeak-cv-ft"
 CACHE_DIR = "/root/.cache/huggingface"
+# espeak voice for the target IPA of the lyric line (Latin American Spanish).
+TARGET_VOICE = "es-419"
 
 
 def _download_model() -> None:
@@ -152,7 +156,7 @@ def _recognise_phones(audio) -> list[str]:
 def _target_words(text: str) -> list[list[str]]:
     """Lyric line -> phones per word, via the model's own espeak phonemizer."""
     tok = _load()["processor"].tokenizer
-    raw = tok.phonemize(text, phonemizer_lang="es")
+    raw = tok.phonemize(text, phonemizer_lang=TARGET_VOICE)
     special = _special_tokens()
     words = [[p for p in w.split() if p not in special] for w in raw.split(tok.word_delimiter_token)]
     return [w for w in words if w]
