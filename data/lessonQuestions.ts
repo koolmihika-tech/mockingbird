@@ -10,13 +10,17 @@ import type { Question } from "../Supabase/services/questions";
 //   recognition) or writing (short_answer, production)
 // giving 2 grammar-reading, 2 vocab-reading, 2 grammar-writing, and
 // 2 vocab-writing questions per topic.
+// Every question also has an `explanation` (the rule behind the answer),
+// shown after the learner answers — required here so none can be missed.
+
+export type LessonQuestion = Question & { explanation: string };
 
 export interface TopicLesson {
   lessonId: string;
   levelId: string; // levels.level_id — unique per topic row
   topic: string; // levels.topics
   goal: string; // levels.goal (path box label)
-  questions: Question[];
+  questions: LessonQuestion[];
 }
 
 export interface Subcategory {
@@ -43,6 +47,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["¿", "¡", ".", ","],
             answer: "¿",
             category: "grammar",
+            explanation: "Spanish marks a question at both ends: ¿ opens it and ? closes it. ¡ does the same job for exclamations (¡...!).",
           },
           {
             type: "fill_blank",
@@ -50,6 +55,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "¿",
             answer: "¿",
             category: "grammar",
+            explanation: "Every Spanish question opens with an upside-down ¿ and closes with ?, so '¿Cómo estás?' needs ¿ at the start.",
           },
           {
             type: "multiple_choice",
@@ -58,6 +64,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["Hello", "Goodbye", "Thank you", "Please"],
             answer: "Hello",
             category: "vocab",
+            explanation: "'Hola' means hello and works any time of day, formal or casual. Goodbye is 'adiós', thank you is 'gracias', and please is 'por favor'.",
           },
           {
             type: "multiple_choice",
@@ -66,6 +73,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["Adiós", "Hola", "Gracias", "Por favor"],
             answer: "Adiós",
             category: "vocab",
+            explanation: "'Adiós' means goodbye, which fits a sentence ending in 'nos vemos mañana' (see you tomorrow). 'Hola' is hello and 'gracias' is thank you.",
           },
           {
             type: "short_answer",
@@ -73,6 +81,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "¿...?",
             answer: "¿Cómo estás?",
             category: "grammar",
+            explanation: "'¿Cómo estás?' is the everyday way to ask 'How are you?'. Note the opening ¿, and the accent on 'cómo' — question words carry one.",
           },
           {
             type: "short_answer",
@@ -80,6 +89,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "¡...! / ¿...?",
             answer: "¡Hola, Marta! ¿Cómo estás hoy?",
             category: "grammar",
+            explanation: "Exclamations are wrapped in ¡...! and questions in ¿...?. The marks go only around the exclaimed or questioned part, so one line can hold both: '¡Hola, Marta! ¿Cómo estás?'",
           },
           {
             type: "short_answer",
@@ -87,6 +97,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "gracias",
             answer: "Gracias por el regalo.",
             category: "vocab",
+            explanation: "Use 'gracias por' + the thing you're thankful for: 'Gracias por el regalo' = thanks for the gift. 'Muchas gracias' means thank you very much.",
           },
           {
             type: "short_answer",
@@ -95,6 +106,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "hola / adiós / gracias",
             answer: "¡Hola! ¿Cómo estás? Adiós, nos vemos pronto.",
             category: "vocab",
+            explanation: "A typical exchange opens with '¡Hola!' and closes with 'Adiós' or a softer goodbye like 'Nos vemos' (see you) or 'Hasta luego' (see you later).",
           },
         ],
       },
@@ -111,6 +123,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["We", "I", "You", "They"],
             answer: "We",
             category: "grammar",
+            explanation: "'Nosotros' means we — a group that includes the speaker ('nosotras' if everyone is female). I = yo, you = tú, they = ellos/ellas.",
           },
           {
             type: "fill_blank",
@@ -118,6 +131,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "yo",
             answer: "Yo",
             category: "grammar",
+            explanation: "'Yo' means I and pairs with 'soy' (I am). It's capitalized here only because it starts the sentence — unlike English 'I', 'yo' is lowercase mid-sentence.",
           },
           {
             type: "multiple_choice",
@@ -126,6 +140,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["The teacher", "The student", "The friend", "The mother"],
             answer: "The teacher",
             category: "vocab",
+            explanation: "'Maestra' is a female teacher (a male teacher is 'maestro'). Student = estudiante, friend = amigo/amiga, mother = madre.",
           },
           {
             type: "fill_blank",
@@ -133,6 +148,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "amigo",
             answer: "amigo",
             category: "vocab",
+            explanation: "A male friend is 'amigo' and a female friend is 'amiga'. For people, the -o / -a ending usually shows gender.",
           },
           {
             type: "short_answer",
@@ -140,6 +156,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "ella",
             answer: "Ella es mi amiga.",
             category: "grammar",
+            explanation: "'Ella' means she. The verb after it uses the he/she form, e.g. 'Ella es...' (She is...).",
           },
           {
             type: "short_answer",
@@ -147,6 +164,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "yo / él / ella",
             answer: "Yo soy Carlos. Él es mi amigo Luis.",
             category: "grammar",
+            explanation: "Each pronoun takes its own verb form: 'yo soy' (I am), but 'él es' / 'ella es' (he/she is). Spanish often drops 'yo' since 'soy' already shows who's speaking.",
           },
           {
             type: "short_answer",
@@ -154,6 +172,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "amigo / maestro / niño",
             answer: "Mi amigo es alto.",
             category: "vocab",
+            explanation: "People-nouns change their ending for gender: amigo/amiga, maestro/maestra, niño/niña. Put 'mi' (my) in front to say whose: 'Mi amigo es alto.'",
           },
           {
             type: "short_answer",
@@ -161,6 +180,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "personas",
             answer: "Mi maestra se llama Ana. Mi vecino es simpático.",
             category: "vocab",
+            explanation: "'Se llama' means 'is called' (his/her name is). 'Vecino/vecina' is neighbor, and 'simpático' means nice.",
           },
         ],
       },
@@ -177,6 +197,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["You are", "I am", "He is", "We are"],
             answer: "You are",
             category: "grammar",
+            explanation: "'Eres' is the tú (informal you) form of ser: yo soy, tú eres, él/ella es. 'I am' would be 'soy' and 'he is' would be 'es'.",
           },
           {
             type: "fill_blank",
@@ -184,6 +205,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "soy",
             answer: "soy",
             category: "grammar",
+            explanation: "With 'yo', ser becomes 'soy'. 'Ser de' + place says where someone is from: 'Soy de México.'",
           },
           {
             type: "multiple_choice",
@@ -192,6 +214,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["Kind", "Tall", "Tired", "Funny"],
             answer: "Kind",
             category: "vocab",
+            explanation: "'Amable' means kind. It ends in -e, so it's the same for males and females. Tall = alto, tired = cansado, funny = gracioso.",
           },
           {
             type: "fill_blank",
@@ -199,6 +222,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "gracioso",
             answer: "gracioso",
             category: "vocab",
+            explanation: "'Gracioso' means funny. 'Amigo' is masculine, so it ends in -o; for 'amiga' it would be 'graciosa'. (Don't confuse it with 'gracias' = thanks.)",
           },
           {
             type: "short_answer",
@@ -206,6 +230,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "es",
             answer: "Ella es simpática.",
             category: "grammar",
+            explanation: "Use 'es' (from ser) for personality and other lasting traits. The adjective matches the person: 'Ella es simpática', 'Él es simpático'.",
           },
           {
             type: "short_answer",
@@ -213,6 +238,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "soy / es",
             answer: "Soy amable. Mi hermano es inteligente.",
             category: "grammar",
+            explanation: "'Soy' is for yourself and 'es' is for one other person. Spanish usually drops 'yo' because 'soy' already means 'I am'.",
           },
           {
             type: "short_answer",
@@ -220,6 +246,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "adjetivos",
             answer: "Mi amiga es inteligente.",
             category: "vocab",
+            explanation: "Adjectives ending in -o switch to -a for a female (gracioso → graciosa); those ending in -e, like inteligente or amable, don't change.",
           },
           {
             type: "short_answer",
@@ -227,6 +254,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "adjetivos",
             answer: "Mi papá es serio. Mi hermana es divertida.",
             category: "vocab",
+            explanation: "Each adjective agrees with the person it describes: 'papá' → serio, 'hermana' → divertida.",
           },
         ],
       },
@@ -248,6 +276,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             ],
             answer: "Because it's plural after a number greater than one",
             category: "grammar",
+            explanation: "Spanish nouns take -s (or -es after a consonant) when there's more than one, just like English: un libro, dos libros. It has nothing to do with gender or verbs.",
           },
           {
             type: "fill_blank",
@@ -255,6 +284,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "perros",
             answer: "perros",
             category: "grammar",
+            explanation: "'Tres' is more than one, so 'perro' becomes 'perros'. Nouns ending in a vowel just add -s.",
           },
           {
             type: "multiple_choice",
@@ -263,6 +293,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["15", "5", "10", "20"],
             answer: "15",
             category: "vocab",
+            explanation: "'Quince' is 15. Learn 11–15 as their own words: once, doce, trece, catorce, quince. Five is 'cinco', ten 'diez', twenty 'veinte'.",
           },
           {
             type: "fill_blank",
@@ -270,6 +301,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "siete",
             answer: "siete",
             category: "vocab",
+            explanation: "7 is 'siete'. Count 1–10: uno, dos, tres, cuatro, cinco, seis, siete, ocho, nueve, diez. 'Hay' means there is / there are.",
           },
           {
             type: "short_answer",
@@ -277,6 +309,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "number + plural",
             answer: "Tengo cinco hermanos.",
             category: "grammar",
+            explanation: "After any number above one the noun goes plural: add -s after a vowel (hermano → hermanos) and -es after a consonant (papel → papeles).",
           },
           {
             type: "short_answer",
@@ -284,6 +317,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "number + plural",
             answer: "Hay ocho mesas. Tengo dos gatos.",
             category: "grammar",
+            explanation: "Each noun matches its number: 'ocho mesas', 'dos gatos'. 'Hay' (there is / there are) doesn't change for plurals.",
           },
           {
             type: "short_answer",
@@ -291,6 +325,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "número",
             answer: "Tengo veinte años.",
             category: "vocab",
+            explanation: "Spanish states age with tener (to have): 'Tengo veinte años' — literally 'I have twenty years'. 'Soy veinte' is a common mistake.",
           },
           {
             type: "short_answer",
@@ -298,6 +333,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "tres / dos",
             answer: "Veo tres libros y dos lápices.",
             category: "vocab",
+            explanation: "Number words go before a plural noun: 'tres libros', 'dos lápices' (lápiz → lápices). Note 'uno' shortens to 'un' before a masculine noun: un libro.",
           },
         ],
       },
@@ -320,6 +356,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["What's your name?", "How are you?", "Where are you from?", "How old are you?"],
             answer: "What's your name?",
             category: "grammar",
+            explanation: "'¿Cómo te llamas?' literally means 'What do you call yourself?' — the standard way to ask someone's name. 'How are you?' is '¿Cómo estás?'.",
           },
           {
             type: "fill_blank",
@@ -327,6 +364,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "me llamo",
             answer: "Me llamo",
             category: "grammar",
+            explanation: "'Me llamo' + name means 'My name is' (literally 'I call myself'). You can also say 'Mi nombre es Ana' or 'Soy Ana'.",
           },
           {
             type: "multiple_choice",
@@ -335,6 +373,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["How many / how old", "What", "Where", "Why"],
             answer: "How many / how old",
             category: "vocab",
+            explanation: "'Cuántos' means how many. '¿Cuántos años tienes?' is literally 'How many years do you have?' — that's how Spanish asks age.",
           },
           {
             type: "fill_blank",
@@ -342,6 +381,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "nombre",
             answer: "nombre",
             category: "vocab",
+            explanation: "'Nombre' means name, so 'Mi nombre es Carlos' = 'My name is Carlos'. It's a slightly more formal alternative to 'Me llamo Carlos'.",
           },
           {
             type: "short_answer",
@@ -349,6 +389,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "me llamo",
             answer: "Me llamo Daniela.",
             category: "grammar",
+            explanation: "'Me llamo' is followed directly by your name with no 'es': 'Me llamo Daniela', not 'Me llamo es Daniela'.",
           },
           {
             type: "short_answer",
@@ -356,6 +397,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "me llamo / tengo años",
             answer: "Me llamo Pedro. Tengo catorce años.",
             category: "grammar",
+            explanation: "Names use llamarse ('Me llamo...'); age uses tener + number + años ('Tengo catorce años'). Spanish never uses ser for age.",
           },
           {
             type: "short_answer",
@@ -363,6 +405,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "nombre / edad",
             answer: "¿Cómo te llamas y cuántos años tienes?",
             category: "vocab",
+            explanation: "Ask a name with '¿Cómo te llamas?' and an age with '¿Cuántos años tienes?'. Both use the tú form for a friend — and remember the opening ¿.",
           },
           {
             type: "short_answer",
@@ -370,6 +413,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "nombre / edad",
             answer: "¿Cómo te llamas? Yo tengo trece años.",
             category: "vocab",
+            explanation: "'¿Cómo te llamas?' asks the name; 'Tengo trece años' gives your age. Use 'tener' for age, never 'ser'.",
           },
         ],
       },
@@ -391,6 +435,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             ],
             answer: "Nationality adjectives agree with gender",
             category: "grammar",
+            explanation: "Nationality adjectives match the person's gender: -o becomes -a (mexicano → mexicana). They're also lowercase in Spanish, unlike English.",
           },
           {
             type: "fill_blank",
@@ -398,6 +443,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "francesa",
             answer: "francesa",
             category: "grammar",
+            explanation: "Nationalities ending in a consonant add -a for the feminine: francés → francesa, español → española. The written accent drops off in the feminine.",
           },
           {
             type: "multiple_choice",
@@ -406,6 +452,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["Mexico", "Spain", "Colombia", "Peru"],
             answer: "Mexico",
             category: "vocab",
+            explanation: "'Mexicana' is the nationality for Mexico (México). Spain → español(a), Colombia → colombiano(a), Peru → peruano(a).",
           },
           {
             type: "fill_blank",
@@ -413,6 +460,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "estadounidense",
             answer: "estadounidense",
             category: "vocab",
+            explanation: "'Estadounidense' means 'from the United States'. It ends in -e, so it's the same for men and women. ('Americano' can refer to anyone from the Americas.)",
           },
           {
             type: "short_answer",
@@ -421,6 +469,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "nationality agreement",
             answer: "Mi amigo es colombiano. Mi amiga es colombiana.",
             category: "grammar",
+            explanation: "Nationality adjectives follow the person: 'amigo' → colombiano, 'amiga' → colombiana. Keep them lowercase.",
           },
           {
             type: "short_answer",
@@ -428,6 +477,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "nationality agreement",
             answer: "Mi mamá es peruana. Mi papá es peruano.",
             category: "grammar",
+            explanation: "Mamá is feminine, so peruana; papá is masculine, so peruano. Each adjective matches its own noun.",
           },
           {
             type: "short_answer",
@@ -435,6 +485,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "nacionalidad",
             answer: "Soy canadiense.",
             category: "vocab",
+            explanation: "'Soy' + nationality states yours: 'Soy canadiense.' Endings in -e (canadiense, estadounidense) don't change; endings in -o switch to -a for women.",
           },
           {
             type: "short_answer",
@@ -442,6 +493,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "nacionalidad / país",
             answer: "Soy chilena. Quiero visitar España.",
             category: "vocab",
+            explanation: "A nationality is a lowercase adjective after ser ('Soy chilena'); a country is a capitalized noun ('Quiero visitar España').",
           },
         ],
       },
@@ -463,6 +515,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             ],
             answer: "Spanish usually drops the article before an unmodified profession after ser",
             category: "grammar",
+            explanation: "After ser, Spanish drops 'un/una' before a bare profession: 'Ella es maestra'. Add the article only when the job is described: 'Ella es una maestra excelente.'",
           },
           {
             type: "fill_blank",
@@ -470,6 +523,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "es",
             answer: "es",
             category: "grammar",
+            explanation: "'Mi tío' is one person (he), so ser becomes 'es'. There's no 'un' before 'ingeniero' because it's an unmodified profession.",
           },
           {
             type: "multiple_choice",
@@ -478,6 +532,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["Heals people", "Teaches students", "Cooks food", "Drives a bus"],
             answer: "Heals people",
             category: "vocab",
+            explanation: "A doctor heals people (a female doctor is a 'doctora'). A teacher is 'maestro/a', a cook 'cocinero/a', a bus driver 'conductor/a'.",
           },
           {
             type: "fill_blank",
@@ -485,6 +540,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "doctora / enfermera",
             answer: "doctora",
             category: "vocab",
+            explanation: "Female professions usually swap -o for -a or add -a: enfermero → enfermera, doctor → doctora. 'Mi mamá' is female, so use 'doctora' (or 'enfermera', nurse).",
           },
           {
             type: "short_answer",
@@ -492,6 +548,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "ser + profession",
             answer: "Mi vecina es doctora.",
             category: "grammar",
+            explanation: "Pattern: person + es + job, no article — 'Mi vecina es doctora.' Match the job's ending to the person (vecina → doctora).",
           },
           {
             type: "short_answer",
@@ -499,6 +556,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "ser + profession",
             answer: "Mi papá es abogado. Mi prima es enfermera.",
             category: "grammar",
+            explanation: "Repeat ser + bare profession, matching gender each time: 'abogado' for papá, 'enfermera' for prima.",
           },
           {
             type: "short_answer",
@@ -506,6 +564,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "profesión",
             answer: "Quiero ser maestra.",
             category: "vocab",
+            explanation: "Use 'Soy' + job for your profession, or 'Quiero ser' + job (I want to be) for a goal. Either way, no 'un/una' before the job.",
           },
           {
             type: "short_answer",
@@ -513,6 +572,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "profesiones",
             answer: "Mi hermano es ingeniero. Mi tía es abogada.",
             category: "vocab",
+            explanation: "Each job agrees with its person: hermano → ingeniero, tía → abogada. Professions are lowercase in Spanish.",
           },
         ],
       },
@@ -534,6 +594,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             ],
             answer: "Days of the week aren't capitalized in Spanish",
             category: "grammar",
+            explanation: "Days of the week and months are lowercase in Spanish (lunes, marzo) unless they start a sentence.",
           },
           {
             type: "fill_blank",
@@ -541,6 +602,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "viernes",
             answer: "viernes",
             category: "grammar",
+            explanation: "'Los viernes' means 'on Fridays' — 'los' + a day describes something that happens every week. Days ending in -s (lunes–viernes) look the same in the plural.",
           },
           {
             type: "multiple_choice",
@@ -549,6 +611,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["A month", "A day", "A season", "A number"],
             answer: "A month",
             category: "vocab",
+            explanation: "'Marzo' is March, and 'en' + month means 'in': 'en marzo'. The months: enero, febrero, marzo, abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre, diciembre.",
           },
           {
             type: "fill_blank",
@@ -556,6 +619,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "lunes",
             answer: "lunes",
             category: "vocab",
+            explanation: "Monday is 'lunes'. Spanish calendars start the week on Monday: lunes, martes, miércoles, jueves, viernes, sábado, domingo.",
           },
           {
             type: "short_answer",
@@ -563,6 +627,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "día (lowercase)",
             answer: "Mañana es sábado.",
             category: "grammar",
+            explanation: "Keep the day lowercase mid-sentence: 'Mañana es sábado.' 'Mañana' alone means tomorrow; 'la mañana' means the morning.",
           },
           {
             type: "short_answer",
@@ -570,6 +635,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "mes / día (lowercase)",
             answer: "Mi mes favorito es diciembre. Hoy es martes.",
             category: "grammar",
+            explanation: "Both months and days are lowercase: 'diciembre', 'martes'. Capitalize them only at the start of a sentence.",
           },
           {
             type: "short_answer",
@@ -577,6 +643,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "día",
             answer: "Hoy es viernes.",
             category: "vocab",
+            explanation: "'Hoy es' + day says what day it is, with no article: 'Hoy es viernes.' Add 'el' when you mean 'on': 'El viernes voy al cine.'",
           },
           {
             type: "short_answer",
@@ -584,6 +651,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "fecha",
             answer: "Mi cumpleaños es el diez de julio.",
             category: "vocab",
+            explanation: "Spanish dates go el + number + de + month: 'el diez de julio'. Use regular numbers (diez), though 'el primero' is common for the 1st.",
           },
         ],
       },
@@ -611,6 +679,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             ],
             answer: "Color adjectives agree with the noun's gender",
             category: "grammar",
+            explanation: "Color adjectives ending in -o change to -a for feminine nouns: el carro rojo, la manzana roja. Colors come after the noun.",
           },
           {
             type: "fill_blank",
@@ -618,6 +687,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "amarillas",
             answer: "amarillas",
             category: "grammar",
+            explanation: "'Flores' is feminine plural, so 'amarillo' becomes 'amarillas': -o → -a for feminine, then add -s for plural.",
           },
           {
             type: "multiple_choice",
@@ -626,6 +696,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["Blue", "Red", "Green", "Yellow"],
             answer: "Blue",
             category: "vocab",
+            explanation: "'Azul' is blue. Red = rojo, green = verde, yellow = amarillo. Azul and verde don't change for gender — only for number (azules, verdes).",
           },
           {
             type: "fill_blank",
@@ -633,6 +704,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "roja",
             answer: "roja",
             category: "vocab",
+            explanation: "'Manzana' is feminine (la manzana), so red is 'roja', not 'rojo'.",
           },
           {
             type: "short_answer",
@@ -640,6 +712,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "color agreement",
             answer: "Las sillas son azules.",
             category: "grammar",
+            explanation: "Colors agree in gender and number. Colors ending in -o have four forms (rojo, roja, rojos, rojas); others only change in the plural (azul → azules).",
           },
           {
             type: "short_answer",
@@ -647,6 +720,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "color agreement",
             answer: "El perro es negro. Las paredes son blancas.",
             category: "grammar",
+            explanation: "Check each noun: 'el perro' → negro (masc. singular); 'las paredes' → blancas (fem. plural). Plural nouns take 'son' instead of 'es'.",
           },
           {
             type: "short_answer",
@@ -654,6 +728,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "color",
             answer: "Mi mochila es verde.",
             category: "vocab",
+            explanation: "Possessive + object + es + color: 'Mi mochila es verde.' 'Verde' is the same for masculine and feminine nouns.",
           },
           {
             type: "short_answer",
@@ -661,6 +736,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "colores",
             answer: "Mi carro es negro y mi casa es blanca.",
             category: "vocab",
+            explanation: "Each color matches its own noun: 'carro' (masc.) → negro, 'casa' (fem.) → blanca. Join two clauses with 'y' (and).",
           },
         ],
       },
@@ -682,6 +758,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             ],
             answer: "The grammatical gender of the noun",
             category: "grammar",
+            explanation: "Every Spanish noun has a grammatical gender: masculine nouns take 'el', feminine take 'la'. Most -o nouns are masculine and most -a nouns feminine, with exceptions like 'el sofá'.",
           },
           {
             type: "fill_blank",
@@ -689,6 +766,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "el",
             answer: "El",
             category: "grammar",
+            explanation: "'Refrigerador' is masculine, so it takes 'el'. Nouns ending in -or are usually masculine.",
           },
           {
             type: "multiple_choice",
@@ -697,6 +775,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["The bed", "The table", "The chair", "The door"],
             answer: "The bed",
             category: "vocab",
+            explanation: "'La cama' is the bed ('duermo' = I sleep). Table = la mesa, chair = la silla, door = la puerta.",
           },
           {
             type: "fill_blank",
@@ -704,6 +783,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "mesa",
             answer: "mesa",
             category: "vocab",
+            explanation: "'Mesa' means table. 'Como' here comes from comer (to eat), so 'Como en la mesa' = 'I eat at the table'.",
           },
           {
             type: "short_answer",
@@ -711,6 +791,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "el/la",
             answer: "La mesa es de madera.",
             category: "grammar",
+            explanation: "Learn each noun together with its article — la mesa, el sofá, la cama — since the article tells you which form adjectives take.",
           },
           {
             type: "short_answer",
@@ -718,6 +799,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "el/la",
             answer: "El sofá es cómodo. La silla es vieja.",
             category: "grammar",
+            explanation: "'Sofá' ends in -a but is masculine (el sofá), so the adjective is 'cómodo'. 'Silla' is feminine, so 'vieja'.",
           },
           {
             type: "short_answer",
@@ -725,6 +807,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "cocina",
             answer: "Hay un refrigerador en la cocina.",
             category: "vocab",
+            explanation: "'Hay' means there is / there are and goes with 'un/una' rather than 'el/la': 'Hay un refrigerador en la cocina.'",
           },
           {
             type: "short_answer",
@@ -732,6 +815,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "hay",
             answer: "Hay una cama y una lámpara en mi cuarto.",
             category: "vocab",
+            explanation: "'Hay' + un/una + noun says what exists in a place. It never changes form, even for plurals: 'Hay dos lámparas.'",
           },
         ],
       },
@@ -753,6 +837,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             ],
             answer: "The grammatical gender of the noun",
             category: "grammar",
+            explanation: "'Un' goes with masculine nouns and 'una' with feminine ones — it depends on the noun's gender, not how many there are. Both mean 'a/an'.",
           },
           {
             type: "fill_blank",
@@ -760,6 +845,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "una",
             answer: "una",
             category: "grammar",
+            explanation: "'Mochila' is feminine, so it takes 'una'. The adjective agrees too: 'una mochila nueva'.",
           },
           {
             type: "multiple_choice",
@@ -768,6 +854,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["A pencil", "A book", "A backpack", "A desk"],
             answer: "A pencil",
             category: "vocab",
+            explanation: "'Un lápiz' is a pencil ('escribo' = I write). Book = un libro, backpack = una mochila, desk = un escritorio.",
           },
           {
             type: "fill_blank",
@@ -775,6 +862,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "libro",
             answer: "libro",
             category: "vocab",
+            explanation: "'Libro' means book ('leo' = I read). Careful: 'librería' is a bookstore, while a library is a 'biblioteca'.",
           },
           {
             type: "short_answer",
@@ -782,6 +870,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "un/una",
             answer: "Necesito un cuaderno.",
             category: "grammar",
+            explanation: "un + masculine noun, una + feminine noun: un cuaderno (notebook), una pluma (pen).",
           },
           {
             type: "short_answer",
@@ -789,6 +878,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "un/una",
             answer: "Tengo una regla. Necesito un borrador.",
             category: "grammar",
+            explanation: "'Regla' (ruler) is feminine → una; 'borrador' (eraser) is masculine → un. Nouns ending in -or are usually masculine.",
           },
           {
             type: "short_answer",
@@ -796,6 +886,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "mochila",
             answer: "Tengo un cuaderno y una pluma.",
             category: "vocab",
+            explanation: "'Tengo' (I have) + un/una + item. List items with 'y': 'un cuaderno y una pluma'.",
           },
           {
             type: "short_answer",
@@ -803,6 +894,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "salón de clases",
             answer: "Hay una pizarra y muchos escritorios.",
             category: "vocab",
+            explanation: "'Hay' says what's in a place. 'Muchos/muchas' (many) agrees with the noun: muchos escritorios, muchas sillas.",
           },
         ],
       },
@@ -824,6 +916,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             ],
             answer: "It agrees with a plural feminine noun",
             category: "grammar",
+            explanation: "Adjectives match their noun in gender and number. 'Sillas' is feminine plural, so 'rojo' → 'rojas'. Adjectives usually follow the noun.",
           },
           {
             type: "fill_blank",
@@ -831,6 +924,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "bonita",
             answer: "bonita",
             category: "grammar",
+            explanation: "'Casa' is feminine, so 'bonito' becomes 'bonita'. With 'hay' we use 'una' (a) rather than 'la' (the).",
           },
           {
             type: "multiple_choice",
@@ -839,6 +933,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["A window", "A door", "A wall", "A roof"],
             answer: "A window",
             category: "vocab",
+            explanation: "'Una ventana' is a window. Door = una puerta, wall = una pared, roof = un techo.",
           },
           {
             type: "fill_blank",
@@ -846,6 +941,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "mesa",
             answer: "mesa",
             category: "vocab",
+            explanation: "'Mesa' means table. 'Grande' ends in -e, so it's the same for feminine and masculine nouns.",
           },
           {
             type: "short_answer",
@@ -853,6 +949,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "hay + adjective",
             answer: "Hay dos ventanas pequeñas.",
             category: "grammar",
+            explanation: "'Hay' + number + noun + adjective, with the adjective agreeing: 'ventanas' is feminine plural → 'pequeñas'.",
           },
           {
             type: "short_answer",
@@ -860,6 +957,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "concordancia",
             answer: "Hay tres libros interesantes y una mesa vieja.",
             category: "grammar",
+            explanation: "Each adjective agrees with its own noun: 'libros' (masc. pl.) → interesantes, 'mesa' (fem. sg.) → vieja. Adjectives ending in -e just add -s for plural.",
           },
           {
             type: "short_answer",
@@ -867,6 +965,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "hay",
             answer: "Hay una lámpara en la mesa.",
             category: "vocab",
+            explanation: "'Hay' means there is / there are. Use it with un/una or a number, not el/la: 'Hay una lámpara', not 'Hay la lámpara'.",
           },
           {
             type: "short_answer",
@@ -874,6 +973,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "hay",
             answer: "Hay una puerta azul. Hay dos sillas en el salón.",
             category: "vocab",
+            explanation: "'Hay' stays the same for one thing or many: 'Hay una puerta', 'Hay dos sillas'.",
           },
         ],
       },
@@ -901,6 +1001,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             ],
             answer: "Using 'de' instead of an apostrophe-s",
             category: "grammar",
+            explanation: "Spanish has no apostrophe-s. Possession uses 'de': thing + de + owner. 'La madre de mi papá' = my dad's mother (literally 'the mother of my dad').",
           },
           {
             type: "fill_blank",
@@ -908,6 +1009,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "de",
             answer: "de",
             category: "grammar",
+            explanation: "'De' means of: 'el perro de mi hermano' = my brother's dog. De + el contracts to 'del': el perro del niño.",
           },
           {
             type: "multiple_choice",
@@ -916,6 +1018,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["My grandmother", "My aunt", "My cousin", "My sister"],
             answer: "My grandmother",
             category: "vocab",
+            explanation: "'Abuela' is grandmother (abuelo = grandfather). Aunt = tía, cousin = prima, sister = hermana.",
           },
           {
             type: "fill_blank",
@@ -923,6 +1026,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "hermano",
             answer: "hermano",
             category: "vocab",
+            explanation: "Your parents' son is your brother: 'hermano' (sister = hermana). 'Padres' means parents, not only fathers.",
           },
           {
             type: "short_answer",
@@ -930,6 +1034,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "de",
             answer: "El hermano de mi mamá es mi tío.",
             category: "grammar",
+            explanation: "Pattern: relative + de + person — 'El hermano de mi mamá es mi tío' (my mom's brother is my uncle).",
           },
           {
             type: "short_answer",
@@ -937,6 +1042,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "de",
             answer: "La hija de mi tía es mi prima. El papá de mi mamá es mi abuelo.",
             category: "grammar",
+            explanation: "Use 'de' for each relationship: 'La hija de mi tía' = my aunt's daughter = 'mi prima'. Family words switch -o/-a for gender: primo/prima, abuelo/abuela.",
           },
           {
             type: "short_answer",
@@ -944,6 +1050,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "familia",
             answer: "Mi tía se llama Rosa.",
             category: "vocab",
+            explanation: "'Mi' + family member names the relation (mi tía, mi abuelo), and 'se llama' gives their name.",
           },
           {
             type: "short_answer",
@@ -951,6 +1058,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "familia",
             answer: "Tengo dos hermanos y una hermana. Mi abuelo vive con nosotros.",
             category: "vocab",
+            explanation: "'Tengo' + number + family members lists your family. A mixed group uses the masculine plural: 'hermanos' can mean brothers or siblings.",
           },
         ],
       },
@@ -972,6 +1080,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             ],
             answer: "The gender of the friend being described",
             category: "grammar",
+            explanation: "'Amigo' is a male friend and 'amiga' a female friend. 'Mi' and 'mejor' stay the same — only the noun's ending shows gender.",
           },
           {
             type: "fill_blank",
@@ -979,6 +1088,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "amiga",
             answer: "amiga",
             category: "grammar",
+            explanation: "The friend is female, so 'amiga'. 'Mejor' (best) doesn't change for gender: mejor amigo, mejor amiga.",
           },
           {
             type: "multiple_choice",
@@ -987,6 +1097,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["Best friend", "Neighbor", "Cousin", "Teacher"],
             answer: "Best friend",
             category: "vocab",
+            explanation: "'Mejor amiga' means best friend (female). 'Mejor' goes before the noun, unlike most adjectives. Neighbor = vecina, cousin = prima.",
           },
           {
             type: "fill_blank",
@@ -994,6 +1105,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "amigo",
             answer: "amigo",
             category: "vocab",
+            explanation: "'Amigo' means friend (male). 'Buen' is 'bueno' shortened before a masculine singular noun: un buen amigo.",
           },
           {
             type: "short_answer",
@@ -1001,6 +1113,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "amigo/amiga",
             answer: "Mi mejor amiga es Sofía. Mi mejor amigo es Diego.",
             category: "grammar",
+            explanation: "Match the noun to the friend: 'mi mejor amiga' for Sofía, 'mi mejor amigo' for Diego.",
           },
           {
             type: "short_answer",
@@ -1008,6 +1121,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "posesivos",
             answer: "Mi amiga es generosa. Su amigo es muy gracioso.",
             category: "grammar",
+            explanation: "'Mi' = my, 'tu' = your (informal), 'su' = his/her/their/your (formal). They agree with the thing owned, not the owner: 'mis amigos' for several friends.",
           },
           {
             type: "short_answer",
@@ -1015,6 +1129,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "amistad",
             answer: "Mi amigo Carlos es muy divertido.",
             category: "vocab",
+            explanation: "'Mi amigo' + name + description; the adjective agrees with the friend, e.g. 'divertido' for a male friend, 'divertida' for a female one.",
           },
           {
             type: "short_answer",
@@ -1022,6 +1137,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "amistad",
             answer: "Mi amiga Laura es muy leal. Somos amigas desde la escuela primaria.",
             category: "vocab",
+            explanation: "'Somos amigas' = we are friends (all female). 'Desde' means since: 'desde la escuela primaria' = since elementary school.",
           },
         ],
       },
@@ -1038,6 +1154,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["To us", "To me", "To you", "To them"],
             answer: "To us",
             category: "grammar",
+            explanation: "'Nuestra' means our, so the house belongs to us. 'Nuestro' changes to match the thing owned: nuestra casa, nuestros perros. My = mi, your = tu, their = su.",
           },
           {
             type: "fill_blank",
@@ -1045,6 +1162,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "tu",
             answer: "Tu",
             category: "grammar",
+            explanation: "'Tu' without an accent means your (informal). 'Tú' with an accent is the pronoun 'you': 'Tú tienes un perro.'",
           },
           {
             type: "multiple_choice",
@@ -1053,6 +1171,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["A car", "A house", "A dog", "A book"],
             answer: "A car",
             category: "vocab",
+            explanation: "'Carro' means car ('coche' in Spain, 'auto' in parts of South America). 'Su' can mean his, her, their, or your (formal).",
           },
           {
             type: "fill_blank",
@@ -1060,6 +1179,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "casa",
             answer: "casa",
             category: "vocab",
+            explanation: "'Casa' means house or home. 'Vivo' (I live) + en + place: 'Vivo en mi casa.'",
           },
           {
             type: "short_answer",
@@ -1067,6 +1187,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "su",
             answer: "Su carro es nuevo.",
             category: "grammar",
+            explanation: "'Su' means his, her, their, or your (formal) — context tells you whose. Plural things take 'sus': sus libros.",
           },
           {
             type: "short_answer",
@@ -1074,6 +1195,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "posesivos",
             answer: "Mi mamá y mi papá son mis padres. Nuestra familia es grande.",
             category: "grammar",
+            explanation: "Possessives match the thing owned, not the owner: 'mis padres' (plural), 'nuestra familia' (feminine). Only nuestro/vuestro change for gender.",
           },
           {
             type: "short_answer",
@@ -1081,6 +1203,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "posesiones",
             answer: "Tengo un perro pequeño.",
             category: "vocab",
+            explanation: "'Tengo' + un/una + thing says what you own. To talk about it afterwards, use 'mi': 'Mi perro es pequeño.'",
           },
           {
             type: "short_answer",
@@ -1088,6 +1211,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "posesiones",
             answer: "Nuestra casa es azul. Mi perro se llama Rex.",
             category: "vocab",
+            explanation: "'Nuestra casa' (our house) and 'mi perro' (my dog) show ownership. 'Nuestra' agrees with 'casa', which is feminine.",
           },
         ],
       },
@@ -1104,6 +1228,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["They have", "They are", "They want", "They see"],
             answer: "They have",
             category: "grammar",
+            explanation: "'Tienen' is the ellos/ellas form of tener (to have). Tener is irregular: tengo, tienes, tiene, tenemos, tienen. 'They are' would be 'son' or 'están'.",
           },
           {
             type: "fill_blank",
@@ -1111,6 +1236,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "tengo",
             answer: "tengo",
             category: "grammar",
+            explanation: "With 'yo', tener becomes 'tengo' — an irregular -go form you just have to memorize.",
           },
           {
             type: "multiple_choice",
@@ -1119,6 +1245,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             options: ["A cousin", "A brother", "A friend", "A neighbor"],
             answer: "A cousin",
             category: "vocab",
+            explanation: "'Primo' is a male cousin ('prima' for female). Brother = hermano, friend = amigo, neighbor = vecino.",
           },
           {
             type: "fill_blank",
@@ -1126,6 +1253,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "gato",
             answer: "gato",
             category: "vocab",
+            explanation: "'Gato' means cat. 'Tiene' is the él/ella form of tener, matching 'mi hermana'.",
           },
           {
             type: "short_answer",
@@ -1133,6 +1261,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "tener + possessive",
             answer: "Mi hermana tiene su propio cuarto.",
             category: "grammar",
+            explanation: "Conjugate tener to match the subject ('mi hermana' → tiene); 'su' refers back to her: 'su propio cuarto' = her own room.",
           },
           {
             type: "short_answer",
@@ -1140,6 +1269,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "tener",
             answer: "Tengo tres primos. Mi prima tiene un gato.",
             category: "grammar",
+            explanation: "'Tengo' for yourself, 'tiene' for one other person. The family word goes plural after a number: tres primos.",
           },
           {
             type: "short_answer",
@@ -1147,6 +1277,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "tener",
             answer: "Tengo un hermano menor.",
             category: "vocab",
+            explanation: "'Tengo' + un/una + family member or pet. 'Menor' means younger and 'mayor' means older: un hermano menor.",
           },
           {
             type: "short_answer",
@@ -1154,6 +1285,7 @@ export const LESSON_SUBCATEGORIES: Subcategory[] = [
             targetWord: "tener",
             answer: "Tengo dos primas. Mi papá tiene un perro.",
             category: "vocab",
+            explanation: "Match tener to each subject: 'Tengo' (I), 'Mi papá tiene' (he). Nouns agree with the number before them: dos primas.",
           },
         ],
       },

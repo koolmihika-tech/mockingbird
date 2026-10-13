@@ -11,6 +11,10 @@ export interface Question {
   // Set on all static lesson-topic questions (see data/lessonQuestions.ts);
   // optional because AI-generated song/topic questions don't set it.
   category?: "grammar" | "vocab";
+  // Teaches the rule behind the answer; shown once the learner has answered.
+  // Required on static lesson questions; the edge function asks Gemini for
+  // one too, but it's optional here in case a response omits it.
+  explanation?: string;
 }
 
 // Calls the "generate-questions" Supabase Edge Function, which holds the

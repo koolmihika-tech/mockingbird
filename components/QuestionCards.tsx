@@ -6,6 +6,21 @@ import { useAppTheme } from "../constants/theme";
 import { Question } from "../Supabase/services/questions";
 import { gradeWriting, type WritingGrade, type WritingLevel } from "../Supabase/services/writingGrade";
 
+// The rule behind the answer, shown once the learner has answered so every
+// question teaches as well as tests. Renders nothing if the question has none.
+function Explanation({ text }: { text?: string }) {
+  const theme = useAppTheme();
+  if (!text) return null;
+  return (
+    <View style={[styles.explanation, { backgroundColor: theme.colors.surface }]}>
+      <MaterialCommunityIcons name="lightbulb-on-outline" size={18} color={theme.colors.primary} />
+      <Text variant="bodyMedium" style={[styles.explanationText, { color: theme.colors.onSurface }]}>
+        {text}
+      </Text>
+    </View>
+  );
+}
+
 export function MultipleChoiceCard({
   question,
   onAnswered,
@@ -56,6 +71,7 @@ export function MultipleChoiceCard({
             );
           })}
         </View>
+        {selected != null && <Explanation text={question.explanation} />}
       </Card.Content>
     </Card>
   );
@@ -112,9 +128,12 @@ export function FillBlankCard({
           style={styles.input}
         />
         {checked ? (
-          <Text variant="bodyMedium" style={{ color: isCorrect ? theme.colors.success : theme.colors.onSurface, fontStyle: "italic" }}>
-            {isCorrect ? "¡Correcto!" : `Correct answer: ${question.answer}`}
-          </Text>
+          <>
+            <Text variant="bodyMedium" style={{ color: isCorrect ? theme.colors.success : theme.colors.onSurface, fontStyle: "italic" }}>
+              {isCorrect ? "¡Correcto!" : `Correct answer: ${question.answer}`}
+            </Text>
+            <Explanation text={question.explanation} />
+          </>
         ) : (
           <Button mode="contained" onPress={handleCheck} disabled={value.trim().length === 0} style={styles.actionBtn}>
             Check
@@ -273,6 +292,7 @@ export function ShortAnswerCard({
                 )}
               </>
             )}
+            <Explanation text={question.explanation} />
             <View style={styles.sampleBlock}>
               <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant }}>
                 Sample answer
@@ -336,4 +356,6 @@ const styles = StyleSheet.create({
   errorWrong: { fontWeight: "700", textDecorationLine: "line-through" },
   errorFix: { fontWeight: "700" },
   actionBtn: { alignSelf: "flex-start" },
+  explanation: { flexDirection: "row", gap: 8, borderRadius: 12, padding: 12, marginTop: 12 },
+  explanationText: { flex: 1 },
 });

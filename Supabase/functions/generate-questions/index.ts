@@ -26,10 +26,21 @@ const questionSchema = {
       type: { type: "string", enum: ["multiple_choice", "fill_blank", "short_answer"] },
       options: { type: "array", items: { type: "string" }, description: "Only for multiple_choice" },
       answer: { type: "string", description: "The correct answer, or a sample answer for short_answer" },
+      explanation: {
+        type: "string",
+        description:
+          "1-2 sentences in English teaching the rule or meaning behind the answer, shown after the learner answers",
+      },
     },
-    required: ["prompt", "targetWord", "type", "answer"],
+    required: ["prompt", "targetWord", "type", "answer", "explanation"],
   },
 };
+
+// Appended to every prompt so each question also teaches, not just tests.
+const EXPLANATION_INSTRUCTION =
+  ` For every question, also write an "explanation": 1-2 sentences in English, shown after the learner answers, ` +
+  `that teach the meaning or grammar rule behind the correct answer (e.g. gender/number agreement, which verb form ` +
+  `and why), and where useful say why a tempting wrong option is wrong. Don't just restate the answer.`;
 
 function buildPrompt(songName: string, words: string[], mode: "reading" | "writing", count: number) {
   const wordList = words.join(", ");
@@ -39,14 +50,16 @@ function buildPrompt(songName: string, words: string[], mode: "reading" | "writi
       `write ${count} short reading-comprehension questions. Write every question's instructions in English (e.g. ` +
       `"What does 'corazón' mean?", "Complete the sentence: ..."); only the short Spanish context sentence that uses ` +
       `one of the words, and the word itself, should be in Spanish. Prefer "multiple_choice" questions with 3-4 ` +
-      `plausible English options, one correct. Some may be "fill_blank" instead.`
+      `plausible English options, one correct. Some may be "fill_blank" instead.` +
+      EXPLANATION_INSTRUCTION
     );
   }
   return (
     `You are a Spanish-language tutor. Using these vocabulary words from the song "${songName}": ${wordList}, ` +
     `write ${count} short writing-practice prompts in English, each asking the learner to write one Spanish ` +
     `sentence using a specific target word correctly. Use type "short_answer" and provide a sample correct sentence ` +
-    `as the answer.`
+    `as the answer.` +
+    EXPLANATION_INSTRUCTION
   );
 }
 
@@ -62,7 +75,8 @@ function buildTopicPrompt(topic: string, count: number) {
     `"short_answer" writing-practice prompts in English, each asking the learner to write one Spanish sentence that ` +
     `correctly uses "${topic}", with a sample correct sentence as the answer. Set "targetWord" to the specific word ` +
     `or phrase from "${topic}" that each question practices. Write all question instructions in English; only the ` +
-    `Spanish example sentences and target words should be in Spanish.`
+    `Spanish example sentences and target words should be in Spanish.` +
+    EXPLANATION_INSTRUCTION
   );
 }
 
