@@ -1,139 +1,126 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import { Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { ActivityIndicator, Button, Surface, Text, TextInput } from "react-native-paper";
-import { getLyrics, parseSyncedLyrics } from "../../../api/lrclib";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Button, Surface, Text } from "react-native-paper";
 import { AppScaffold } from "../../../components/AppScaffold";
 import { useAppTheme, type AppTheme } from "../../../constants/theme";
+import { clipFor, LISTENING_ITEMS, type ListeningItem } from "../../../data/listening";
 import { SONGS } from "../../../data/songs";
-import { useSpeakLine } from "../../../hooks/useSpeakLine";
 
-type WordResult = { word: string; status: "correct" | "accent" | "missed" };
+/** Slow-mode playback speed (1 is normal). */
+const SLOW_RATE = 0.7;
+/** Chance a question is a phrase rather than a single word, when both exist. */
+const PHRASE_SHARE = 0.35;
 
-/** Lowercase and drop punctuation; keeps accents. */
-const clean = (w: string) => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
-/** clean() with accents (and ñ → n) stripped, for lenient matching. */
-const base = (w: string) => clean(w).normalize("NFD").replace(/\p{M}/gu, "");
-
-/** Lines up the typed words against the lyric with a longest-common-subsequence
- *  match on accent-free words, then marks each lyric word as correct, right
- *  but missing/misplacing an accent, or missed. */
-function gradeDictation(lyric: string, typed: string): WordResult[] {
-  const expected = lyric.split(/\s+/).filter((w) => clean(w).length > 0);
-  const heard = typed.split(/\s+/).filter((w) => clean(w).length > 0);
-  const a = expected.map(base);
-  const b = heard.map(base);
-
-  const lcs = Array.from({ length: a.length + 1 }, () => new Array<number>(b.length + 1).fill(0));
-  for (let i = a.length - 1; i >= 0; i--) {
-    for (let j = b.length - 1; j >= 0; j--) {
-      lcs[i][j] = a[i] === b[j] ? lcs[i + 1][j + 1] + 1 : Math.max(lcs[i + 1][j], lcs[i][j + 1]);
-    }
+const shuffle = <T,>(a: T[]): T[] => {
+  const out = [...a];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
   }
+  return out;
+};
 
-  const results: WordResult[] = expected.map((word) => ({ word, status: "missed" }));
-  let i = 0;
-  let j = 0;
-  while (i < a.length && j < b.length) {
-    if (a[i] === b[j]) {
-      results[i].status = clean(expected[i]) === clean(heard[j]) ? "correct" : "accent";
-      i++;
-      j++;
-    } else if (lcs[i + 1][j] >= lcs[i][j + 1]) {
-      i++;
-    } else {
-      j++;
-    }
-  }
-  return results;
-}
-
-/** Per-song listening practice — a random lyric line is read aloud by a
- *  Spanish (Mexico) TTS voice and the learner types what they heard, then
- *  sees which words they caught. Set up like the per-song flashcards and
- *  speaking screens (app/songs/[id]/flashcards.tsx, speaking.tsx). */
+/** Per-song listening practice — hear a word or short phrase from the song
+ *  (a pre-generated clip, never synthesised on the fly) and pick which of two
+ *  look-alike options you heard, e.g. "coro" vs "corso". Set up like the other
+ *  per-song screens (app/songs/[id]/flashcards.tsx, speaking.tsx). */
 export default function SongListeningScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useAppTheme();
   const styles = makeStyles(theme);
   const song = SONGS.find((s) => s.id === id);
 
-  const [lines, setLines] = useState<string[] | null>(null);
-  const [lyric, setLyric] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const items = useMemo(() => LISTENING_ITEMS.filter((i) => i.songId === id), [id]);
 
-  const [typed, setTyped] = useState("");
-  const [results, setResults] = useState<WordResult[] | null>(null);
-  const [revealed, setRevealed] = useState(false);
-  // Session tally: lines checked and lines heard perfectly (accents forgiven).
-  const [attempted, setAttempted] = useState(0);
-  const [perfect, setPerfect] = useState(0);
-
-  const { speak, stop: stopSpeech, speaking, hasVoice, voicesLoaded } = useSpeakLine();
+  const [current, setCurrent] = useState<ListeningItem | null>(null);
+  const [options, setOptions] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string | null>(null);
   const [slow, setSlow] = useState(false);
+  // Session tally.
+  const [attempted, setAttempted] = useState(0);
+  const [correct, setCorrect] = useState(0);
 
-  const pickRandomLine = useCallback((pool: string[], current?: string | null) => {
-    if (pool.length === 0) return null;
-    if (pool.length === 1) return pool[0];
-    let next = current;
-    while (next === current) next = pool[Math.floor(Math.random() * pool.length)];
-    return next ?? null;
+  const seen = useRef(new Set<string>());
+  const autoPlay = useRef(false);
+
+  const player = useAudioPlayer(null);
+  const { playing } = useAudioPlayerStatus(player);
+
+  // Next unseen item, mixing words and phrases; start over once all are seen.
+  const pickNext = useCallback((): ListeningItem | null => {
+    if (items.length === 0) return null;
+    let unseen = items.filter((i) => !seen.current.has(i.id));
+    if (unseen.length === 0) {
+      seen.current.clear();
+      unseen = items;
+    }
+    const phrases = unseen.filter((i) => i.kind === "phrase");
+    const words = unseen.filter((i) => i.kind === "word");
+    const wantPhrase = phrases.length > 0 && (words.length === 0 || Math.random() < PHRASE_SHARE);
+    const pool = wantPhrase ? phrases : words;
+    const next = pool[Math.floor(Math.random() * pool.length)];
+    seen.current.add(next.id);
+    return next;
+  }, [items]);
+
+  const startItem = useCallback((item: ListeningItem | null, play: boolean) => {
+    autoPlay.current = play;
+    setCurrent(item);
+    setOptions(item ? shuffle([item.text, item.distractor]) : []);
+    setSelected(null);
   }, []);
 
-  const nextLine = useCallback(() => {
-    stopSpeech();
-    if (lines) setLyric((cur) => pickRandomLine(lines, cur));
-    setTyped("");
-    setResults(null);
-    setRevealed(false);
-  }, [lines, pickRandomLine, stopSpeech]);
-
-  const check = useCallback(() => {
-    if (!lyric || typed.trim().length === 0) return;
-    stopSpeech();
-    const graded = gradeDictation(lyric, typed);
-    setResults(graded);
-    setRevealed(true);
-    setAttempted((n) => n + 1);
-    if (graded.every((w) => w.status !== "missed")) setPerfect((n) => n + 1);
-  }, [lyric, typed, stopSpeech]);
-
+  // First question when the song loads.
   useEffect(() => {
-    if (!song) return;
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    setLines(null);
-    setLyric(null);
+    seen.current.clear();
+    startItem(pickNext(), false);
+    setAttempted(0);
+    setCorrect(0);
+    void setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false }).catch(() => {});
+  }, [id, pickNext, startItem]);
 
-    getLyrics(song.name, song.artist)
-      .then((result) => {
-        if (cancelled) return;
-        const raw = result?.syncedLyrics
-          ? parseSyncedLyrics(result.syncedLyrics).map((l) => l.text)
-          : (result?.plainLyrics ?? "").split("\n");
-        // Dedupe so a repeated chorus line doesn't dominate the pool.
-        const pool = [...new Set(raw.map((l) => l.trim()).filter((l) => l.length > 0))];
-        if (pool.length === 0) {
-          setError("No lyrics available for this song yet.");
-          return;
-        }
-        setLines(pool);
-        setLyric(pickRandomLine(pool));
-      })
-      .catch(() => {
-        if (!cancelled) setError("Could not load lyrics.");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+  const play = useCallback(() => {
+    if (!current) return;
+    try {
+      player.playbackRate = slow ? SLOW_RATE : 1;
+    } catch {
+      // Rate control isn't available everywhere; play at normal speed.
+    }
+    void player.seekTo(0);
+    player.play();
+  }, [current, player, slow]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [song?.id, pickRandomLine]);
+  // Load the clip for each new question; auto-play it when advancing.
+  useEffect(() => {
+    if (!current) return;
+    const src = clipFor(current);
+    if (src === undefined) return;
+    player.replace(src);
+    if (autoPlay.current) {
+      autoPlay.current = false;
+      play();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current, player]);
+
+  const togglePlay = () => {
+    if (playing) {
+      player.pause();
+      void player.seekTo(0);
+    } else {
+      play();
+    }
+  };
+
+  const choose = (option: string) => {
+    if (!current || selected) return;
+    setSelected(option);
+    setAttempted((n) => n + 1);
+    if (option === current.text) setCorrect((n) => n + 1);
+  };
 
   if (!song) {
     return (
@@ -145,14 +132,12 @@ export default function SongListeningScreen() {
     );
   }
 
-  const caught = results ? results.filter((w) => w.status !== "missed").length : 0;
-  const score = results && results.length > 0 ? Math.round((caught / results.length) * 100) : 0;
-  const wordColor = (status: WordResult["status"]) =>
-    status === "correct" ? theme.colors.success : status === "accent" ? theme.colors.streak : theme.colors.error;
+  const answered = selected !== null;
+  const isRight = answered && selected === current?.text;
 
   return (
     <AppScaffold title={`${song.displayName ?? song.name} — Listening`} back>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.container}>
         <Text variant="headlineSmall" style={styles.songName}>
           {song.displayName ?? song.name}
         </Text>
@@ -162,41 +147,26 @@ export default function SongListeningScreen() {
           </Text>
         )}
 
-        {loading ? (
-          <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 32 }} />
-        ) : error ? (
-          <Text variant="bodyMedium" style={styles.errorText}>
-            {error}
+        {!current ? (
+          <Text variant="bodyMedium" style={styles.emptyText}>
+            Listening practice isn&apos;t available for this song yet.
           </Text>
         ) : (
           <>
-            {/* Play the hidden line */}
+            {/* Play the clip */}
             <Surface style={styles.listenBox} elevation={1}>
-              <View style={styles.listenHeaderRow}>
-                <Text variant="titleMedium" style={styles.sectionHeader}>
-                  Listen to the line
-                </Text>
-                <Pressable
-                  onPress={nextLine}
-                  style={({ pressed }) => [styles.shuffleBtn, pressed && { opacity: 0.6 }]}
-                  hitSlop={8}
-                >
-                  <MaterialCommunityIcons name="shuffle-variant" size={18} color={theme.colors.onSurfaceVariant} />
-                </Pressable>
-              </View>
+              <Text variant="titleMedium" style={styles.sectionHeader}>
+                {current.kind === "phrase" ? "Listen to the phrase" : "Listen to the word"}
+              </Text>
               <Pressable
-                onPress={() => (speaking ? stopSpeech() : lyric && speak(lyric, slow))}
-                disabled={!lyric}
-                style={({ pressed }) => [styles.playButton, speaking && styles.playButtonActive, pressed && { opacity: 0.85 }]}
+                onPress={togglePlay}
+                style={({ pressed }) => [styles.playButton, playing && styles.playButtonActive, pressed && { opacity: 0.85 }]}
+                accessibilityLabel={playing ? "Stop" : "Play"}
               >
-                <MaterialCommunityIcons
-                  name={speaking ? "stop" : "volume-high"}
-                  size={32}
-                  color={theme.colors.onPrimary}
-                />
+                <MaterialCommunityIcons name={playing ? "stop" : "volume-high"} size={32} color={theme.colors.onPrimary} />
               </Pressable>
               <Text variant="labelLarge" style={styles.playLabel}>
-                {speaking ? "Playing… tap to stop" : "Tap to play"}
+                {playing ? "Playing… tap to stop" : "Tap to play"}
               </Text>
               <Pressable
                 onPress={() => setSlow((v) => !v)}
@@ -214,84 +184,60 @@ export default function SongListeningScreen() {
                   Slow
                 </Text>
               </Pressable>
-              {voicesLoaded && !hasVoice && Platform.OS === "android" && (
-                <Text variant="bodySmall" style={styles.voiceHint}>
-                  For the best pronunciation, install a Spanish (Mexico) voice in Settings → Text-to-speech.
-                </Text>
-              )}
             </Surface>
 
-            {/* Type what you heard */}
-            <View style={styles.answerSection}>
-              <Text variant="titleMedium" style={[styles.sectionHeader, { marginBottom: 8 }]}>
-                What did you hear?
-              </Text>
-              <TextInput
-                mode="outlined"
-                value={typed}
-                onChangeText={(t) => {
-                  setTyped(t);
-                  if (results) setResults(null);
-                }}
-                placeholder="Type the line in Spanish"
-                autoCapitalize="none"
-                autoCorrect={false}
-                multiline
-                onSubmitEditing={check}
-                submitBehavior="blurAndSubmit"
-                style={styles.input}
-              />
-              <View style={styles.answerActions}>
-                <Button mode="contained" onPress={check} disabled={typed.trim().length === 0}>
-                  Check
-                </Button>
-                {!revealed && (
-                  <Button mode="text" onPress={() => setRevealed(true)}>
-                    Show line
-                  </Button>
-                )}
-                {revealed && (
-                  <Button mode="outlined" icon="arrow-right" onPress={nextLine}>
-                    Next line
-                  </Button>
-                )}
-              </View>
+            {/* Pick what you heard */}
+            <Text variant="titleMedium" style={[styles.sectionHeader, styles.question]}>
+              What did you hear?
+            </Text>
+            <View style={styles.options}>
+              {options.map((option) => {
+                const isAnswer = option === current.text;
+                const isPicked = option === selected;
+                const state = !answered ? "idle" : isAnswer ? "right" : isPicked ? "wrong" : "dim";
+                return (
+                  <Pressable
+                    key={option}
+                    onPress={() => choose(option)}
+                    disabled={answered}
+                    style={({ pressed }) => [styles.option, styles[`option_${state}`], pressed && { opacity: 0.85 }]}
+                  >
+                    <Text variant="titleLarge" style={[styles.optionText, styles[`optionText_${state}`]]}>
+                      {option}
+                    </Text>
+                    {state === "right" && <MaterialCommunityIcons name="check-circle" size={22} color={theme.colors.onSuccess} />}
+                    {state === "wrong" && (
+                      <MaterialCommunityIcons name="close-circle" size={22} color={theme.colors.onErrorContainer} />
+                    )}
+                  </Pressable>
+                );
+              })}
             </View>
 
-            {/* Result */}
-            {revealed && (
-              <Surface style={styles.resultBox} elevation={1}>
-                {results && (
-                  <View style={styles.scoreRow}>
-                    <Text variant="headlineMedium" style={[styles.score, { color: score === 100 ? theme.colors.success : theme.colors.onSurface }]}>
-                      {score}%
-                    </Text>
-                    <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-                      {caught} of {results.length} words caught
-                    </Text>
-                  </View>
-                )}
-                <Text variant="titleLarge" style={styles.lyricText}>
-                  {results
-                    ? results.map((w, i) => (
-                        <Text key={i} style={{ color: wordColor(w.status) }}>
-                          {w.word}
-                          {i < results.length - 1 ? " " : ""}
-                        </Text>
-                      ))
-                    : lyric}
+            {answered && (
+              <Surface style={styles.feedback} elevation={1}>
+                <Text variant="titleMedium" style={{ color: isRight ? theme.colors.success : theme.colors.error, fontWeight: "800" }}>
+                  {isRight ? "Correct!" : `Not quite — it was “${current.text}”`}
                 </Text>
-                {results && results.some((w) => w.status === "accent") && (
-                  <Text variant="bodySmall" style={styles.accentHint}>
-                    Words in amber are right but missing an accent or tilde.
+                {current.gloss ? (
+                  <Text variant="bodyMedium" style={styles.gloss}>
+                    {current.text}: {current.gloss}
                   </Text>
-                )}
+                ) : null}
+                <View style={styles.feedbackActions}>
+                  <Button mode="outlined" icon="volume-high" onPress={play}>
+                    Hear it again
+                  </Button>
+                  <Button mode="contained" icon="arrow-right" onPress={() => startItem(pickNext(), true)}>
+                    Next
+                  </Button>
+                </View>
               </Surface>
             )}
 
             {attempted > 0 && (
               <Text variant="bodySmall" style={styles.tally}>
-                This session: {perfect} of {attempted} lines heard perfectly
+                This session: {correct} of {attempted} correct
               </Text>
             )}
           </>
@@ -307,6 +253,7 @@ const makeStyles = (theme: AppTheme) =>
     songName: { color: theme.colors.onBackground, fontWeight: "800", textAlign: "center", marginTop: 8, marginBottom: 4 },
     songArtist: { color: theme.colors.onSurfaceVariant, textAlign: "center", marginBottom: 20 },
     sectionHeader: { color: theme.colors.onBackground, fontWeight: "700" },
+    emptyText: { color: theme.colors.onSurfaceVariant, textAlign: "center", marginTop: 32 },
 
     listenBox: {
       width: "100%",
@@ -319,8 +266,6 @@ const makeStyles = (theme: AppTheme) =>
       marginTop: 12,
       marginBottom: 24,
     },
-    listenHeaderRow: { width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-    shuffleBtn: { padding: 4 },
     playButton: {
       width: 72,
       height: 72,
@@ -342,24 +287,39 @@ const makeStyles = (theme: AppTheme) =>
       paddingVertical: 6,
     },
     slowToggleOn: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
-    voiceHint: { color: theme.colors.onSurfaceVariant, textAlign: "center" },
 
-    answerSection: { width: "100%", marginBottom: 20 },
-    input: { backgroundColor: theme.colors.surface },
-    answerActions: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10, marginTop: 12 },
+    question: { alignSelf: "flex-start", marginBottom: 10 },
+    options: { width: "100%", gap: 12 },
+    option: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      minHeight: 64,
+      borderRadius: 16,
+      borderWidth: 1.5,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    option_idle: { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineVariant },
+    option_right: { backgroundColor: theme.colors.success, borderColor: theme.colors.success },
+    option_wrong: { backgroundColor: theme.colors.errorContainer, borderColor: theme.colors.error },
+    option_dim: { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineVariant, opacity: 0.5 },
+    optionText: { fontWeight: "700", textAlign: "center" },
+    optionText_idle: { color: theme.colors.onSurface },
+    optionText_right: { color: theme.colors.onSuccess },
+    optionText_wrong: { color: theme.colors.onErrorContainer },
+    optionText_dim: { color: theme.colors.onSurface },
 
-    resultBox: {
+    feedback: {
       width: "100%",
       backgroundColor: theme.colors.surface,
       borderRadius: 16,
       padding: 20,
-      gap: 10,
+      gap: 8,
+      marginTop: 20,
     },
-    scoreRow: { flexDirection: "row", alignItems: "baseline", gap: 10 },
-    score: { fontWeight: "800" },
-    lyricText: { color: theme.colors.onSurface, fontWeight: "800", lineHeight: 30 },
-    accentHint: { color: theme.colors.onSurfaceVariant },
+    gloss: { color: theme.colors.onSurfaceVariant },
+    feedbackActions: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10, marginTop: 8 },
     tally: { color: theme.colors.onSurfaceVariant, marginTop: 16 },
-
-    errorText: { color: theme.colors.error, textAlign: "center", marginTop: 32 },
   });

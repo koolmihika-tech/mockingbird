@@ -46,3 +46,7 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Listening clip tooling: 63 MB voice models and cached lyrics
+ml/listening/voices/
+ml/listening/cache/

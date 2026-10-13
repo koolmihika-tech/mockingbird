@@ -1,0 +1,978 @@
+[
+ {
+  "id": "1-w-baila",
+  "songId": "1",
+  "kind": "word",
+  "text": "baila",
+  "distractor": "bala",
+  "gloss": "dance (command) / he-she dances",
+  "clip": "5a43b9b312dc"
+ },
+ {
+  "id": "1-w-llega",
+  "songId": "1",
+  "kind": "word",
+  "text": "llega",
+  "distractor": "lleva",
+  "gloss": "arrives / comes",
+  "clip": "c54087975a4a"
+ },
+ {
+  "id": "1-w-gente",
+  "songId": "1",
+  "kind": "word",
+  "text": "gente",
+  "distractor": "mente",
+  "gloss": "people; '¡mi gente!' = 'my people!'",
+  "clip": "b52e0a7a806e"
+ },
+ {
+  "id": "1-w-soñar",
+  "songId": "1",
+  "kind": "word",
+  "text": "soñar",
+  "distractor": "sonar",
+  "gloss": "to dream",
+  "clip": "a2bbf3421e1e"
+ },
+ {
+  "id": "1-w-entender",
+  "songId": "1",
+  "kind": "word",
+  "text": "entender",
+  "distractor": "encender",
+  "gloss": "to understand",
+  "clip": "42bd16436f5c"
+ },
+ {
+  "id": "1-w-vida",
+  "songId": "1",
+  "kind": "word",
+  "text": "vida",
+  "distractor": "viva",
+  "gloss": "life",
+  "clip": "c303fda042c8"
+ },
+ {
+  "id": "1-w-vencer",
+  "songId": "1",
+  "kind": "word",
+  "text": "vencer",
+  "distractor": "vender",
+  "gloss": "to overcome / to defeat",
+  "clip": "13cfd60b91e8"
+ },
+ {
+  "id": "1-w-momento",
+  "songId": "1",
+  "kind": "word",
+  "text": "momento",
+  "distractor": "comento",
+  "gloss": "moment",
+  "clip": "33769ac9a6ea"
+ },
+ {
+  "id": "1-w-solo",
+  "songId": "1",
+  "kind": "word",
+  "text": "solo",
+  "distractor": "polo",
+  "gloss": "only / just; also 'alone'",
+  "clip": "49f25741ff0d"
+ },
+ {
+  "id": "1-w-gota",
+  "songId": "1",
+  "kind": "word",
+  "text": "gota",
+  "distractor": "nota",
+  "gloss": "drop",
+  "clip": "244eebcd964a"
+ },
+ {
+  "id": "1-w-camino",
+  "songId": "1",
+  "kind": "word",
+  "text": "camino",
+  "distractor": "casino",
+  "gloss": "path / road",
+  "clip": "4c2b2db03dcd"
+ },
+ {
+  "id": "1-w-pena",
+  "songId": "1",
+  "kind": "word",
+  "text": "pena",
+  "distractor": "cena",
+  "gloss": "sorrow / grief / pain",
+  "clip": "b96ab516bf07"
+ },
+ {
+  "id": "1-w-sola",
+  "songId": "1",
+  "kind": "word",
+  "text": "sola",
+  "distractor": "hola",
+  "gloss": "alone / single (feminine); 'la vida es una sola' = 'you only have one life'",
+  "clip": "f6c7a3699fb3"
+ },
+ {
+  "id": "1-w-escuchar",
+  "songId": "1",
+  "kind": "word",
+  "text": "escuchar",
+  "distractor": "escucha",
+  "gloss": "to listen",
+  "clip": "08571a9e04b9"
+ },
+ {
+  "id": "1-w-limpiar",
+  "songId": "1",
+  "kind": "word",
+  "text": "limpiar",
+  "distractor": "limpia",
+  "gloss": "to clean",
+  "clip": "9ae25fca673c"
+ },
+ {
+  "id": "1-p-15efb4da464e",
+  "songId": "1",
+  "kind": "phrase",
+  "text": "si duele una pena",
+  "distractor": "si duele una cena",
+  "clip": "15efb4da464e"
+ },
+ {
+  "id": "1-p-2ccd681a3275",
+  "songId": "1",
+  "kind": "phrase",
+  "text": "puede vencer la sequía",
+  "distractor": "puede vender la sequía",
+  "clip": "2ccd681a3275"
+ },
+ {
+  "id": "1-p-ef3124cfe39d",
+  "songId": "1",
+  "kind": "phrase",
+  "text": "para encontrar el camino",
+  "distractor": "para encontrar el casino",
+  "clip": "ef3124cfe39d"
+ },
+ {
+  "id": "1-p-eafd6e15cd70",
+  "songId": "1",
+  "kind": "phrase",
+  "text": "para entender el destino",
+  "distractor": "para encender el destino",
+  "clip": "eafd6e15cd70"
+ },
+ {
+  "id": "1-p-30d67bb5ef99",
+  "songId": "1",
+  "kind": "phrase",
+  "text": "empieza a soñar",
+  "distractor": "empieza a sonar",
+  "clip": "30d67bb5ef99"
+ },
+ {
+  "id": "2-w-hacer",
+  "songId": "2",
+  "kind": "word",
+  "text": "hacer",
+  "distractor": "haber",
+  "gloss": "to do / to make; '¿qué voy a hacer?' = 'what am I going to do?'",
+  "clip": "44f7a54b02d5"
+ },
+ {
+  "id": "2-w-moto",
+  "songId": "2",
+  "kind": "word",
+  "text": "moto",
+  "distractor": "modo",
+  "gloss": "motorbike (short for motocicleta)",
+  "clip": "1f7f1c7a647c"
+ },
+ {
+  "id": "2-w-cuba",
+  "songId": "2",
+  "kind": "word",
+  "text": "cuba",
+  "distractor": "cura",
+  "gloss": "Cuba",
+  "clip": "c4e7ac099dfd"
+ },
+ {
+  "id": "2-w-noche",
+  "songId": "2",
+  "kind": "word",
+  "text": "noche",
+  "distractor": "coche",
+  "gloss": "night",
+  "clip": "fdadc53ed478"
+ },
+ {
+  "id": "2-w-cocina",
+  "songId": "2",
+  "kind": "word",
+  "text": "cocina",
+  "distractor": "colina",
+  "gloss": "kitchen; also 'cooking' / 'he-she cooks'",
+  "clip": "6c6e13daadc0"
+ },
+ {
+  "id": "2-w-fuego",
+  "songId": "2",
+  "kind": "word",
+  "text": "fuego",
+  "distractor": "luego",
+  "gloss": "fire",
+  "clip": "29a2923a326c"
+ },
+ {
+  "id": "2-w-salvador",
+  "songId": "2",
+  "kind": "word",
+  "text": "salvador",
+  "distractor": "saltador",
+  "gloss": "in 'San Salvador' (capital of El Salvador) and 'El Salvador' (country) (proper noun)",
+  "clip": "98ac177e5ce7"
+ },
+ {
+  "id": "2-w-chino",
+  "songId": "2",
+  "kind": "word",
+  "text": "chino",
+  "distractor": "chico",
+  "gloss": "Chinese (masculine)",
+  "clip": "da66aa3621f3"
+ },
+ {
+  "id": "2-w-cinco",
+  "songId": "2",
+  "kind": "word",
+  "text": "cinco",
+  "distractor": "circo",
+  "gloss": "five",
+  "clip": "a097b33b7758"
+ },
+ {
+  "id": "2-w-viento",
+  "songId": "2",
+  "kind": "word",
+  "text": "viento",
+  "distractor": "ciento",
+  "gloss": "wind",
+  "clip": "03a2a4eac2e7"
+ },
+ {
+  "id": "2-w-soñar",
+  "songId": "2",
+  "kind": "word",
+  "text": "soñar",
+  "distractor": "sonar",
+  "gloss": "to dream",
+  "clip": "a2bbf3421e1e"
+ },
+ {
+  "id": "2-w-montaña",
+  "songId": "2",
+  "kind": "word",
+  "text": "montaña",
+  "distractor": "montada",
+  "gloss": "mountain",
+  "clip": "9a5807ec4d7a"
+ },
+ {
+  "id": "2-w-brilla",
+  "songId": "2",
+  "kind": "word",
+  "text": "brilla",
+  "distractor": "orilla",
+  "gloss": "shines / glitters",
+  "clip": "399bc0b15d10"
+ },
+ {
+  "id": "2-w-canela",
+  "songId": "2",
+  "kind": "word",
+  "text": "canela",
+  "distractor": "cancela",
+  "gloss": "cinnamon",
+  "clip": "415fe6be8b99"
+ },
+ {
+  "id": "2-w-doce",
+  "songId": "2",
+  "kind": "word",
+  "text": "doce",
+  "distractor": "dote",
+  "gloss": "twelve",
+  "clip": "c24b8eb0d02c"
+ },
+ {
+  "id": "2-p-abdd54fc1d51",
+  "songId": "2",
+  "kind": "phrase",
+  "text": "me gusta la vecina",
+  "distractor": "me gusta la cecina",
+  "clip": "abdd54fc1d51"
+ },
+ {
+  "id": "2-p-af8f9c924265",
+  "songId": "2",
+  "kind": "phrase",
+  "text": "cinco de la mañana",
+  "distractor": "circo de la mañana",
+  "clip": "af8f9c924265"
+ },
+ {
+  "id": "2-p-5f35fb9b88d0",
+  "songId": "2",
+  "kind": "phrase",
+  "text": "remedio chino e infalible",
+  "distractor": "remedio chico e infalible",
+  "clip": "5f35fb9b88d0"
+ },
+ {
+  "id": "2-p-275435af8405",
+  "songId": "2",
+  "kind": "phrase",
+  "text": "me gusta la cena",
+  "distractor": "me gusta la pena",
+  "clip": "275435af8405"
+ },
+ {
+  "id": "2-p-ea65d154aada",
+  "songId": "2",
+  "kind": "phrase",
+  "text": "cuatro de la mañana",
+  "distractor": "cuadro de la mañana",
+  "clip": "ea65d154aada"
+ },
+ {
+  "id": "3-w-confesar",
+  "songId": "3",
+  "kind": "word",
+  "text": "confesar",
+  "distractor": "confesor",
+  "gloss": "to confess",
+  "clip": "9bea91b2c00f"
+ },
+ {
+  "id": "3-w-pura",
+  "songId": "3",
+  "kind": "word",
+  "text": "pura",
+  "distractor": "para",
+  "gloss": "pure (feminine); 'pura casualidad' = 'pure coincidence'",
+  "clip": "df489a0b3bde"
+ },
+ {
+  "id": "3-w-falta",
+  "songId": "3",
+  "kind": "word",
+  "text": "falta",
+  "distractor": "alta",
+  "gloss": "lack / shortage; 'no hace falta' = 'there's no need'",
+  "clip": "bb1e8f36be98"
+ },
+ {
+  "id": "3-w-cerca",
+  "songId": "3",
+  "kind": "word",
+  "text": "cerca",
+  "distractor": "acerca",
+  "gloss": "near / close by",
+  "clip": "34bbe760fd8d"
+ },
+ {
+  "id": "3-w-empezar",
+  "songId": "3",
+  "kind": "word",
+  "text": "empezar",
+  "distractor": "empeñar",
+  "gloss": "to begin / to start",
+  "clip": "7f5a9bed5d97"
+ },
+ {
+  "id": "3-w-limón",
+  "songId": "3",
+  "kind": "word",
+  "text": "limón",
+  "distractor": "timón",
+  "gloss": "lemon",
+  "clip": "9fc74bdff2bd"
+ },
+ {
+  "id": "3-w-gana",
+  "songId": "3",
+  "kind": "word",
+  "text": "gana",
+  "distractor": "sana",
+  "gloss": "wins / beats; 'le gana a lo bueno'",
+  "clip": "3492d75b948b"
+ },
+ {
+  "id": "3-w-luego",
+  "songId": "3",
+  "kind": "word",
+  "text": "luego",
+  "distractor": "juego",
+  "gloss": "then / later; 'luego te me desapareces'",
+  "clip": "11e6ab9f3ce4"
+ },
+ {
+  "id": "3-w-luna",
+  "songId": "3",
+  "kind": "word",
+  "text": "luna",
+  "distractor": "una",
+  "gloss": "moon",
+  "clip": "4b7fad4f3f94"
+ },
+ {
+  "id": "3-w-llega",
+  "songId": "3",
+  "kind": "word",
+  "text": "llega",
+  "distractor": "lleva",
+  "gloss": "arrives / comes",
+  "clip": "c54087975a4a"
+ },
+ {
+  "id": "3-w-bien",
+  "songId": "3",
+  "kind": "word",
+  "text": "bien",
+  "distractor": "buen",
+  "gloss": "well; 'muy bien' = 'very well'",
+  "clip": "d4e2f6084164"
+ },
+ {
+  "id": "3-w-forma",
+  "songId": "3",
+  "kind": "word",
+  "text": "forma",
+  "distractor": "firma",
+  "gloss": "form / way; 'forma de ser' = 'personality / way of being'",
+  "clip": "80c34c3af84c"
+ },
+ {
+  "id": "3-w-tengo",
+  "songId": "3",
+  "kind": "word",
+  "text": "tengo",
+  "distractor": "tenso",
+  "gloss": "I have; 'tengo que confesar' = 'I have to confess'",
+  "clip": "fd3d44f63d79"
+ },
+ {
+  "id": "3-w-solo",
+  "songId": "3",
+  "kind": "word",
+  "text": "solo",
+  "distractor": "polo",
+  "gloss": "only / just; 'solo tenerte cerca'",
+  "clip": "49f25741ff0d"
+ },
+ {
+  "id": "3-w-ahora",
+  "songId": "3",
+  "kind": "word",
+  "text": "ahora",
+  "distractor": "hora",
+  "gloss": "now",
+  "clip": "317914bb85c2"
+ },
+ {
+  "id": "3-p-a44be84d801e",
+  "songId": "3",
+  "kind": "phrase",
+  "text": "siento que vuelvo a empezar",
+  "distractor": "siento que vuelvo a empeñar",
+  "clip": "a44be84d801e"
+ },
+ {
+  "id": "4-w-amar",
+  "songId": "4",
+  "kind": "word",
+  "text": "amar",
+  "distractor": "amor",
+  "gloss": "to love",
+  "clip": "54cf1edf1143"
+ },
+ {
+  "id": "4-w-sentir",
+  "songId": "4",
+  "kind": "word",
+  "text": "sentir",
+  "distractor": "mentir",
+  "gloss": "to feel; 'pa sentir'",
+  "clip": "7c6cb6063b4e"
+ },
+ {
+  "id": "4-w-caer",
+  "songId": "4",
+  "kind": "word",
+  "text": "caer",
+  "distractor": "caber",
+  "gloss": "to fall; 'de tanto caer' = 'from falling so much'",
+  "clip": "5337d554cbe8"
+ },
+ {
+  "id": "4-w-ganar",
+  "songId": "4",
+  "kind": "word",
+  "text": "ganar",
+  "distractor": "sanar",
+  "gloss": "to win",
+  "clip": "56ec734b1228"
+ },
+ {
+  "id": "4-w-mejor",
+  "songId": "4",
+  "kind": "word",
+  "text": "mejor",
+  "distractor": "menor",
+  "gloss": "better; 'mejor que ayer'",
+  "clip": "da7ca0bc1451"
+ },
+ {
+  "id": "4-w-normal",
+  "songId": "4",
+  "kind": "word",
+  "text": "normal",
+  "distractor": "formal",
+  "gloss": "normal; 'es normal tropezar'",
+  "clip": "9c2a6e4809ae"
+ },
+ {
+  "id": "4-w-bajar",
+  "songId": "4",
+  "kind": "word",
+  "text": "bajar",
+  "distractor": "pajar",
+  "gloss": "to go down / to lower; 'no le pienso bajar' = 'I don't plan to give in'",
+  "clip": "1352a687f684"
+ },
+ {
+  "id": "4-w-tanto",
+  "songId": "4",
+  "kind": "word",
+  "text": "tanto",
+  "distractor": "tonto",
+  "gloss": "so much; 'de tanto caer' = 'from falling so much'",
+  "clip": "66ffb96d1b56"
+ },
+ {
+  "id": "4-w-vida",
+  "songId": "4",
+  "kind": "word",
+  "text": "vida",
+  "distractor": "viva",
+  "gloss": "life",
+  "clip": "c303fda042c8"
+ },
+ {
+  "id": "4-w-empezar",
+  "songId": "4",
+  "kind": "word",
+  "text": "empezar",
+  "distractor": "empeñar",
+  "gloss": "to begin / to start; 'volver a empezar' = 'to start over'",
+  "clip": "7f5a9bed5d97"
+ },
+ {
+  "id": "4-w-suelo",
+  "songId": "4",
+  "kind": "word",
+  "text": "suelo",
+  "distractor": "sueño",
+  "gloss": "ground / floor; 'me caiga al suelo'",
+  "clip": "a2242f0e1919"
+ },
+ {
+  "id": "4-w-vuelo",
+  "songId": "4",
+  "kind": "word",
+  "text": "vuelo",
+  "distractor": "vuelto",
+  "gloss": "flight; 'habrá otro vuelo'; also 'I fly'",
+  "clip": "0bf2b7cc9421"
+ },
+ {
+  "id": "4-w-cero",
+  "songId": "4",
+  "kind": "word",
+  "text": "cero",
+  "distractor": "pero",
+  "gloss": "zero; 'empezamos de cero' = 'we start from scratch'",
+  "clip": "74cbf12e072b"
+ },
+ {
+  "id": "4-w-tres",
+  "songId": "4",
+  "kind": "word",
+  "text": "tres",
+  "distractor": "tras",
+  "gloss": "three",
+  "clip": "0c9598733896"
+ },
+ {
+  "id": "4-w-primero",
+  "songId": "4",
+  "kind": "word",
+  "text": "primero",
+  "distractor": "primera",
+  "gloss": "first; 'me puse primero' = 'I put myself first'",
+  "clip": "2e146f6319d1"
+ },
+ {
+  "id": "4-p-79259d970eb2",
+  "songId": "4",
+  "kind": "phrase",
+  "text": "hoy soy mejor que ayer",
+  "distractor": "hoy soy menor que ayer",
+  "clip": "79259d970eb2"
+ },
+ {
+  "id": "4-p-1811defecebe",
+  "songId": "4",
+  "kind": "phrase",
+  "text": "aprendemos por amar y sufrir",
+  "distractor": "aprendemos por amor y sufrir",
+  "clip": "1811defecebe"
+ },
+ {
+  "id": "4-p-a838dc5d85d0",
+  "songId": "4",
+  "kind": "phrase",
+  "text": "mejor que ayer",
+  "distractor": "menor que ayer",
+  "clip": "a838dc5d85d0"
+ },
+ {
+  "id": "4-p-06975be5e214",
+  "songId": "4",
+  "kind": "phrase",
+  "text": "para volver a empezar",
+  "distractor": "para volver a empeñar",
+  "clip": "06975be5e214"
+ },
+ {
+  "id": "4-p-e011d07b07d5",
+  "songId": "4",
+  "kind": "phrase",
+  "text": "y de tanto caer",
+  "distractor": "y de tonto caer",
+  "clip": "e011d07b07d5"
+ },
+ {
+  "id": "5-w-mirada",
+  "songId": "5",
+  "kind": "word",
+  "text": "mirada",
+  "distractor": "tirada",
+  "gloss": "look / gaze; 'en tu mirada'",
+  "clip": "445fd572a222"
+ },
+ {
+  "id": "5-w-cante",
+  "songId": "5",
+  "kind": "word",
+  "text": "cante",
+  "distractor": "ante",
+  "gloss": "(that) I sing (subjunctive); 'que yo te cante'",
+  "clip": "66f7e5afee9d"
+ },
+ {
+  "id": "5-w-noche",
+  "songId": "5",
+  "kind": "word",
+  "text": "noche",
+  "distractor": "coche",
+  "gloss": "night; 'en esa noche'",
+  "clip": "fdadc53ed478"
+ },
+ {
+  "id": "5-w-dentro",
+  "songId": "5",
+  "kind": "word",
+  "text": "dentro",
+  "distractor": "adentro",
+  "gloss": "inside; 'por dentro yo te gritaba'",
+  "clip": "c3b20c913fc7"
+ },
+ {
+  "id": "5-w-alma",
+  "songId": "5",
+  "kind": "word",
+  "text": "alma",
+  "distractor": "arma",
+  "gloss": "soul; 'que me llegue hasta el alma'",
+  "clip": "5f5ea3800d9a"
+ },
+ {
+  "id": "5-w-boca",
+  "songId": "5",
+  "kind": "word",
+  "text": "boca",
+  "distractor": "loca",
+  "gloss": "mouth; 'por esa boca'",
+  "clip": "42a50539b0df"
+ },
+ {
+  "id": "5-w-seria",
+  "songId": "5",
+  "kind": "word",
+  "text": "seria",
+  "distractor": "feria",
+  "gloss": "serious (feminine); 'te pones seria'",
+  "clip": "8d972a049e09"
+ },
+ {
+  "id": "5-w-solo",
+  "songId": "5",
+  "kind": "word",
+  "text": "solo",
+  "distractor": "polo",
+  "gloss": "only / just; 'solo quiero un beso'",
+  "clip": "49f25741ff0d"
+ },
+ {
+  "id": "5-w-vaya",
+  "songId": "5",
+  "kind": "word",
+  "text": "vaya",
+  "distractor": "haya",
+  "gloss": "colloquial clipped form of 'vayas' (you go / leave); 'tú no te vaya''",
+  "clip": "9c0e423663dc"
+ },
+ {
+  "id": "5-w-canción",
+  "songId": "5",
+  "kind": "word",
+  "text": "canción",
+  "distractor": "sanción",
+  "gloss": "song",
+  "clip": "b7b043b04ba6"
+ },
+ {
+  "id": "5-w-beso",
+  "songId": "5",
+  "kind": "word",
+  "text": "beso",
+  "distractor": "eso",
+  "gloss": "kiss; 'robarte un beso'",
+  "clip": "6edd8a12b3ab"
+ },
+ {
+  "id": "5-w-encontrado",
+  "songId": "5",
+  "kind": "word",
+  "text": "encontrado",
+  "distractor": "encontrada",
+  "gloss": "found (past participle); 'no he encontrado'",
+  "clip": "856a4fcd2fb0"
+ },
+ {
+  "id": "5-w-segundo",
+  "songId": "5",
+  "kind": "word",
+  "text": "segundo",
+  "distractor": "segunda",
+  "gloss": "second",
+  "clip": "d899f3b9c4f0"
+ },
+ {
+  "id": "5-p-4e864dd2601c",
+  "songId": "5",
+  "kind": "phrase",
+  "text": "déjame subirle a esta canción",
+  "distractor": "déjame subirle a esta sanción",
+  "clip": "4e864dd2601c"
+ },
+ {
+  "id": "5-p-8856c1b6c133",
+  "songId": "5",
+  "kind": "phrase",
+  "text": "déjame escribirte una canción",
+  "distractor": "déjame escribirte una sanción",
+  "clip": "8856c1b6c133"
+ },
+ {
+  "id": "6-w-alegría",
+  "songId": "6",
+  "kind": "word",
+  "text": "alegría",
+  "distractor": "alegra",
+  "gloss": "joy",
+  "clip": "8abdb50ae653"
+ },
+ {
+  "id": "6-w-dentro",
+  "songId": "6",
+  "kind": "word",
+  "text": "dentro",
+  "distractor": "adentro",
+  "gloss": "inside",
+  "clip": "c3b20c913fc7"
+ },
+ {
+  "id": "6-w-fuerza",
+  "songId": "6",
+  "kind": "word",
+  "text": "fuerza",
+  "distractor": "fuera",
+  "gloss": "strength",
+  "clip": "7c2cfb35955c"
+ },
+ {
+  "id": "6-w-hogar",
+  "songId": "6",
+  "kind": "word",
+  "text": "hogar",
+  "distractor": "rogar",
+  "gloss": "home",
+  "clip": "311010dd262b"
+ },
+ {
+  "id": "6-w-ahora",
+  "songId": "6",
+  "kind": "word",
+  "text": "ahora",
+  "distractor": "hora",
+  "gloss": "now",
+  "clip": "317914bb85c2"
+ },
+ {
+  "id": "6-w-paso",
+  "songId": "6",
+  "kind": "word",
+  "text": "paso",
+  "distractor": "caso",
+  "gloss": "step",
+  "clip": "5d32ee2e794d"
+ },
+ {
+  "id": "6-w-rumbo",
+  "songId": "6",
+  "kind": "word",
+  "text": "rumbo",
+  "distractor": "tumbo",
+  "gloss": "course",
+  "clip": "a96b0591f024"
+ },
+ {
+  "id": "6-w-mirada",
+  "songId": "6",
+  "kind": "word",
+  "text": "mirada",
+  "distractor": "tirada",
+  "gloss": "look",
+  "clip": "445fd572a222"
+ },
+ {
+  "id": "6-w-dirección",
+  "songId": "6",
+  "kind": "word",
+  "text": "dirección",
+  "distractor": "disección",
+  "gloss": "direction",
+  "clip": "5695924afed3"
+ },
+ {
+  "id": "6-w-parte",
+  "songId": "6",
+  "kind": "word",
+  "text": "parte",
+  "distractor": "arte",
+  "gloss": "part",
+  "clip": "3653c5dfa95b"
+ },
+ {
+  "id": "6-w-mundo",
+  "songId": "6",
+  "kind": "word",
+  "text": "mundo",
+  "distractor": "mando",
+  "gloss": "world",
+  "clip": "5956a2b28d94"
+ },
+ {
+  "id": "6-w-cielo",
+  "songId": "6",
+  "kind": "word",
+  "text": "cielo",
+  "distractor": "hielo",
+  "gloss": "sky",
+  "clip": "b54cfda89820"
+ },
+ {
+  "id": "6-w-parar",
+  "songId": "6",
+  "kind": "word",
+  "text": "parar",
+  "distractor": "pasar",
+  "gloss": "to stop",
+  "clip": "9c1d96767b8c"
+ },
+ {
+  "id": "6-w-nacer",
+  "songId": "6",
+  "kind": "word",
+  "text": "nacer",
+  "distractor": "hacer",
+  "gloss": "to be born",
+  "clip": "d351fa946f89"
+ },
+ {
+  "id": "6-w-generación",
+  "songId": "6",
+  "kind": "word",
+  "text": "generación",
+  "distractor": "veneración",
+  "gloss": "generation",
+  "clip": "cb2a5123dc81"
+ },
+ {
+  "id": "6-p-f08c9d10611b",
+  "songId": "6",
+  "kind": "phrase",
+  "text": "rumbo a la libertad",
+  "distractor": "tumbo a la libertad",
+  "clip": "f08c9d10611b"
+ },
+ {
+  "id": "6-p-fd7d2740bb94",
+  "songId": "6",
+  "kind": "phrase",
+  "text": "un mundo más allá",
+  "distractor": "un mando más allá",
+  "clip": "fd7d2740bb94"
+ },
+ {
+  "id": "6-p-87b1a1330a82",
+  "songId": "6",
+  "kind": "phrase",
+  "text": "siempre será parte de mí",
+  "distractor": "siempre será arte de mí",
+  "clip": "87b1a1330a82"
+ },
+ {
+  "id": "6-p-e1d4a4ff536f",
+  "songId": "6",
+  "kind": "phrase",
+  "text": "esto acaba de empezar",
+  "distractor": "esto acaba de empeñar",
+  "clip": "e1d4a4ff536f"
+ },
+ {
+  "id": "6-p-e7fbe65c5cd5",
+  "songId": "6",
+  "kind": "phrase",
+  "text": "no íbamos a parar",
+  "distractor": "no íbamos a pasar",
+  "clip": "e7fbe65c5cd5"
+ }
+]
