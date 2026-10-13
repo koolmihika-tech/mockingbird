@@ -13,12 +13,16 @@ export interface Song {
   level: string;
   videoQueries: string[];
   videoIds: string[];
+  // Kept in the data (with its vocabulary, history id, etc.) but left out of
+  // SONGS, so no screen lists or opens it. Remove the flag to bring it back.
+  archived?: boolean;
 }
 
-export const SONGS: Song[] = [
+const ALL_SONGS: Song[] = [
   {
     id: "1",
     historyId: "6a1e6b1a-0b1b-4b9e-9a5d-1f9c6e2a1a01",
+    archived: true,
     name: "Vivir Mi Vida",
     artist: "Marc Anthony",
     coverColor: "#E8C5A0",
@@ -177,3 +181,6 @@ export const SONGS: Song[] = [
     videoIds: ["-UV0QGLmYys"],
   },
 ];
+
+/** Songs the app uses. Archived songs stay in ALL_SONGS but are not exposed. */
+export const SONGS: Song[] = ALL_SONGS.filter((song) => !song.archived);

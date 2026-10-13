@@ -15,7 +15,6 @@ import { ActivityIndicator, Button, Surface, Text } from "react-native-paper";
 import YoutubePlayer, { YoutubeIframeRef } from "react-native-youtube-iframe";
 import { getLyrics, parseSyncedLyrics } from "../../api/lrclib";
 import { AppScaffold } from "../../components/AppScaffold";
-import { FlashCardCarousel } from "../../components/FlashCards";
 import { useAppTheme, type AppTheme } from "../../constants/theme";
 import { useSupabaseAuth } from "../../context/SupabaseAuth";
 import { SONGS } from "../../data/songs";
@@ -262,7 +261,6 @@ export default function SongPlayerScreen() {
   }
 
   const songVocab = (vocab as Record<string, Record<string, string>>)[song.name] ?? {};
-  const vocabEntries = Object.entries(songVocab);
 
   return (
     <AppScaffold title={song.name} back>
@@ -311,15 +309,6 @@ export default function SongPlayerScreen() {
             </RNText>
           )}
         </View>
-
-        {vocabEntries.length > 0 && (
-          <View style={styles.flashcardsSection}>
-            <Text variant="titleMedium" style={styles.sectionHeader}>
-              Vocabulary
-            </Text>
-            <FlashCardCarousel entries={vocabEntries} color={song.coverColor} />
-          </View>
-        )}
 
         <Button
           mode="contained"
@@ -408,8 +397,6 @@ const makeStyles = (theme: AppTheme) =>
     },
     definitionWord: { color: theme.colors.onSurface, fontFamily: "Nunito_700Bold", fontSize: 12, marginBottom: 2 },
     definitionText: { color: theme.colors.onSurface, fontFamily: "Nunito_400Regular", fontSize: 12 },
-
-    flashcardsSection: { width: "100%", marginBottom: 28 },
 
     nextBtn: { alignSelf: "stretch", borderRadius: 999 },
     nextBtnContent: { flexDirection: "row-reverse", paddingVertical: 6 },

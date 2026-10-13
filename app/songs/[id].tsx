@@ -11,10 +11,9 @@ import { SONGS } from "../../data/songs";
 const IS_WEB = Platform.OS === "web";
 
 type SkillIcon = keyof typeof MaterialCommunityIcons.glyphMap;
-const SKILLS: { label: string; icon: SkillIcon; route: "flashcards" | "reading" | "writing" }[] = [
+const SKILLS: { label: string; icon: SkillIcon; route: "flashcards" | "listening" }[] = [
   { label: "Flashcards", icon: "cards-outline", route: "flashcards" },
-  { label: "Reading", icon: "book-open-variant", route: "reading" },
-  { label: "Writing", icon: "pencil", route: "writing" },
+  { label: "Listening", icon: "headphones", route: "listening" },
 ];
 
 export default function SongHubScreen() {

@@ -1,7 +1,7 @@
 import { StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
 import { useAppTheme, type AppTheme } from "../constants/theme";
-import type { PhonemeAlignment, PronunciationResult as Result } from "../Supabase/services/transcription";
+import type { PhonemeAlignment, PronunciationResult as Result, WordAssessment } from "../Supabase/services/transcription";
 
 /** Renders one assessment: a big overall score, then a block per lyric word —
  *  the word, "you said:" with each sound unfilled (right) or red (wrong /
@@ -30,9 +30,11 @@ export function PronunciationResult({ result }: { result: Result }) {
         <View style={styles.words}>
           {result.words.map((w, i) => (
             <View key={i} style={styles.wordRow}>
-              <Text variant="titleMedium" style={styles.wordText}>
-                {w.word}
-              </Text>
+              <View style={[styles.wordBadge, wordIsPerfect(w) ? styles.wordBadgeRight : styles.wordBadgeWrong]}>
+                <Text variant="titleMedium" style={[styles.wordText, wordIsPerfect(w) ? styles.wordTextRight : styles.wordTextWrong]}>
+                  {w.word}
+                </Text>
+              </View>
               <View style={styles.lineRow}>
                 <Text variant="bodyMedium" style={styles.lineLabel}>
                   you said:
@@ -74,6 +76,11 @@ export function PronunciationResult({ result }: { result: Result }) {
       </View>
     </View>
   );
+}
+
+/** A word counts as pronounced correctly only if every one of its sounds matched. */
+function wordIsPerfect(w: WordAssessment): boolean {
+  return w.alignment.length > 0 && w.alignment.every((a) => a.op === "equal");
 }
 
 /** One sound the user made for a word: unfilled if it matched the target, red
@@ -126,7 +133,13 @@ const makeStyles = (theme: AppTheme) =>
 
     words: { gap: 14 },
     wordRow: { gap: 6 },
-    wordText: { color: theme.colors.onSurface, fontFamily: "Nunito_700Bold" },
+    // The word is highlighted (not recoloured): green if every sound matched, red otherwise.
+    wordBadge: { alignSelf: "flex-start", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 3 },
+    wordBadgeRight: { backgroundColor: theme.colors.success },
+    wordBadgeWrong: { backgroundColor: theme.colors.errorContainer },
+    wordText: { fontFamily: "Nunito_700Bold" },
+    wordTextRight: { color: theme.colors.onSuccess },
+    wordTextWrong: { color: theme.colors.onErrorContainer },
     lineRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6 },
     lineLabel: { color: theme.colors.onSurfaceVariant, fontFamily: "Nunito_400Regular", marginRight: 2 },
     // Right sounds get no fill, but keep the chip box so spacing matches.

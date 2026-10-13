@@ -117,18 +117,6 @@ export default function LessonsScreen() {
                   );
                 })}
               </View>
-
-              {/* Unit test — large oval button. Not yet implemented, so it's a
-                  non-interactive placeholder like Listening/Speaking. */}
-              <View style={[styles.unitTest, styles.unitTestLocked]}>
-                <MaterialCommunityIcons name="clipboard-check-outline" size={22} color={theme.colors.onSurfaceVariant} />
-                <Text variant="titleMedium" style={styles.unitTestTextLocked}>
-                  Unit Test
-                </Text>
-                <Text variant="labelMedium" style={styles.unitTestComingSoon}>
-                  Coming soon
-                </Text>
-              </View>
             </View>
           )}
         </ScrollView>
@@ -187,21 +175,4 @@ const makeStyles = (theme: AppTheme) =>
       borderColor: theme.colors.surface,
     },
     circleLabel: { color: theme.colors.onSurface, textAlign: "center", marginTop: 10 },
-
-    // Unit test oval
-    unitTest: {
-      marginTop: 32,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 10,
-      backgroundColor: theme.colors.primary,
-      borderRadius: 999,
-      paddingVertical: 18,
-      paddingHorizontal: 24,
-    },
-    unitTestLocked: { backgroundColor: theme.colors.surfaceDisabled, opacity: 0.6 },
-    unitTestText: { color: theme.colors.onPrimary, fontWeight: "800" },
-    unitTestTextLocked: { color: theme.colors.onSurfaceVariant, fontWeight: "800" },
-    unitTestComingSoon: { color: theme.colors.onSurfaceVariant, opacity: 0.9 },
   });

@@ -191,7 +191,7 @@ export default function Home() {
         <Button
           mode="contained"
           icon="book-open-variant"
-          onPress={() => router.push("/lessons")}
+          onPress={() => router.push("/practice")}
           style={styles.lessonButton}
           contentStyle={styles.lessonButtonContent}
         >

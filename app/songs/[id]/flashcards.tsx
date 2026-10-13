@@ -5,6 +5,7 @@ import { AppScaffold } from "../../../components/AppScaffold";
 import { FlashCardCarousel } from "../../../components/FlashCards";
 import { useAppTheme, type AppTheme } from "../../../constants/theme";
 import { SONGS } from "../../../data/songs";
+import { definitionOnly } from "../../../data/definitionOnly";
 import vocab from "../../../data/vocabulary.json";
 
 export default function SongFlashcardsScreen() {
@@ -24,7 +25,8 @@ export default function SongFlashcardsScreen() {
   }
 
   const songVocab = (vocab as Record<string, Record<string, string>>)[song.name] ?? {};
-  const vocabEntries = Object.entries(songVocab);
+  // Cards show just the meaning; the usage examples in the data are left out.
+  const vocabEntries = Object.entries(songVocab).map(([word, def]): [string, string] => [word, definitionOnly(def)]);
 
   return (
     <AppScaffold title={`${song.displayName ?? song.name} — Flashcards`} back>

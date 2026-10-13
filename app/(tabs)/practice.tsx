@@ -42,7 +42,7 @@ export default function PracticeScreen() {
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Flashcards: one deck per level, compiled from its lessons' vocab */}
         <Text variant="titleMedium" style={[styles.sectionLabel, styles.firstSectionLabel, { color: theme.colors.onBackground }]}>
-          Flashcards
+          Learn with Flashcards
         </Text>
         {loading ? (
           <ActivityIndicator color={theme.colors.primary} style={styles.spinner} />
@@ -62,7 +62,7 @@ export default function PracticeScreen() {
 
         {/* Decks */}
         <Text variant="titleMedium" style={[styles.sectionLabel, { color: theme.colors.onBackground }]}>
-          Practice Pathways
+          Practice Lessons
         </Text>
         {DECKS.map((deck) => {
           const inner = (
