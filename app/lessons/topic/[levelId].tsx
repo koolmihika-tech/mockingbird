@@ -6,7 +6,7 @@ import { AppScaffold } from "../../../components/AppScaffold";
 import { QuestionCard } from "../../../components/QuestionCards";
 import { useAppTheme } from "../../../constants/theme";
 import { useSupabaseAuth } from "../../../context/SupabaseAuth";
-import { getLessonId, getLessonQuestions } from "../../../data/lessonQuestions";
+import { getGrammarFocus, getLessonId, getLessonQuestions } from "../../../data/lessonQuestions";
 import { logActivity } from "../../../Supabase/services/activityHistory";
 import { logLessonHistory } from "../../../Supabase/services/lessonHistory";
 
@@ -18,6 +18,7 @@ export default function TopicPracticeScreen() {
 
   const questions = getLessonQuestions(levelId);
   const lessonId = getLessonId(levelId);
+  const grammarFocus = getGrammarFocus(levelId);
 
   // Writing-prompt (short_answer) questions can't be auto-graded, so they
   // start counted as correct; multiple_choice/fill_blank start unanswered.
@@ -79,9 +80,14 @@ export default function TopicPracticeScreen() {
   return (
     <AppScaffold title={label ?? topic} back onBack={handleExit}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 20 }}>
+        <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginBottom: grammarFocus ? 4 : 20 }}>
           {topic}
         </Text>
+        {grammarFocus && (
+          <Text variant="labelLarge" style={{ color: theme.colors.primary, marginBottom: 20 }}>
+            Grammar: {grammarFocus}
+          </Text>
+        )}
 
         {questions && questions.length > 0 ? (
           questions.map((q, i) => (

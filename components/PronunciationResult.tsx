@@ -3,8 +3,11 @@ import { Text } from "react-native-paper";
 import { useAppTheme, type AppTheme } from "../constants/theme";
 import type { PhonemeAlignment, PronunciationResult as Result } from "../Supabase/services/transcription";
 
-/** Renders one assessment: a big overall score, a phone-by-phone strip coloured
- *  by how each target phone came out, and the target / spoken IPA. */
+/** Renders one assessment: a big overall score, then a block per lyric word —
+ *  the word, "you said:" with each sound unfilled (right) or red (wrong /
+ *  extra / missing), and "correct:" with the target sounds, unfilled where you
+ *  already had it right and green where it should have been different — and
+ *  finally the whole-line target / spoken IPA. */
 export function PronunciationResult({ result }: { result: Result }) {
   const theme = useAppTheme();
   const styles = makeStyles(theme);
@@ -23,11 +26,37 @@ export function PronunciationResult({ result }: { result: Result }) {
         </Text>
       </View>
 
-      <View style={styles.strip}>
-        {result.alignment.map((a, i) => (
-          <PhoneChip key={i} a={a} styles={styles} />
-        ))}
-      </View>
+      {result.words.length > 0 ? (
+        <View style={styles.words}>
+          {result.words.map((w, i) => (
+            <View key={i} style={styles.wordRow}>
+              <Text variant="titleMedium" style={styles.wordText}>
+                {w.word}
+              </Text>
+              <View style={styles.lineRow}>
+                <Text variant="bodyMedium" style={styles.lineLabel}>
+                  you said:
+                </Text>
+                {w.alignment.map((a, j) => (
+                  <SaidChip key={j} a={a} styles={styles} />
+                ))}
+              </View>
+              <View style={styles.lineRow}>
+                <Text variant="bodyMedium" style={styles.lineLabel}>
+                  correct:
+                </Text>
+                {w.alignment.map((a, j) => (a.target ? <CorrectChip key={j} a={a} styles={styles} /> : null))}
+              </View>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View style={styles.strip}>
+          {result.alignment.map((a, i) => (
+            <PhoneChip key={i} a={a} styles={styles} />
+          ))}
+        </View>
+      )}
 
       <View style={styles.ipaBlock}>
         <Text variant="labelSmall" style={styles.ipaLabel}>
@@ -43,6 +72,28 @@ export function PronunciationResult({ result }: { result: Result }) {
           {result.spokenIpa ? `/${result.spokenIpa}/` : "No speech detected — try recording again."}
         </Text>
       </View>
+    </View>
+  );
+}
+
+/** One sound the user made for a word: unfilled if it matched the target, red
+ *  if it was wrong or extra, and a red dash where a target sound was left out. */
+function SaidChip({ a, styles }: { a: PhonemeAlignment; styles: ReturnType<typeof makeStyles> }) {
+  const right = a.op === "equal";
+  return (
+    <View style={[styles.chip, right ? styles.chipUnchanged : styles.chipSub]}>
+      <Text style={right ? styles.chipUnchangedText : styles.chipWrongText}>{a.spoken ?? "–"}</Text>
+    </View>
+  );
+}
+
+/** One target sound: unfilled if the user already said it right (unchanged),
+ *  green if it's the sound they should have made instead. */
+function CorrectChip({ a, styles }: { a: PhonemeAlignment; styles: ReturnType<typeof makeStyles> }) {
+  const right = a.op === "equal";
+  return (
+    <View style={[styles.chip, right ? styles.chipUnchanged : styles.chipEqual]}>
+      <Text style={right ? styles.chipUnchangedText : styles.chipEqualText}>{a.target}</Text>
     </View>
   );
 }
@@ -73,10 +124,20 @@ const makeStyles = (theme: AppTheme) =>
     score: { fontWeight: "800" },
     scoreUnit: { color: theme.colors.onSurfaceVariant },
 
+    words: { gap: 14 },
+    wordRow: { gap: 6 },
+    wordText: { color: theme.colors.onSurface, fontFamily: "Nunito_700Bold" },
+    lineRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6 },
+    lineLabel: { color: theme.colors.onSurfaceVariant, fontFamily: "Nunito_400Regular", marginRight: 2 },
+    // Right sounds get no fill, but keep the chip box so spacing matches.
+    chipUnchanged: { backgroundColor: "transparent" },
+    chipUnchangedText: { color: theme.colors.onSurface, fontFamily: "Nunito_700Bold", fontSize: 15 },
+    chipWrongText: { color: theme.colors.onErrorContainer, fontFamily: "Nunito_700Bold", fontSize: 15 },
+
     strip: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
     chip: { minWidth: 26, alignItems: "center", borderRadius: 8, paddingHorizontal: 6, paddingVertical: 4 },
-    chipEqual: { backgroundColor: theme.colors.successContainer },
-    chipEqualText: { color: theme.colors.onSuccessContainer, fontFamily: "Nunito_700Bold", fontSize: 15 },
+    chipEqual: { backgroundColor: theme.colors.success },
+    chipEqualText: { color: theme.colors.onSuccess, fontFamily: "Nunito_700Bold", fontSize: 15 },
     chipSub: { backgroundColor: theme.colors.errorContainer },
     chipSubText: {
       color: theme.colors.onErrorContainer,

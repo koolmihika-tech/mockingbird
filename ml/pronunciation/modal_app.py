@@ -24,7 +24,8 @@ Cross-lingual Phoneme Recognition" (arXiv 2109.11680). Apache 2.0.
      a phone, scaled up by articulatory-feature distance (panphon).
 
 Returns: { ipa } or, with a target,
-         { ipa, target_ipa, spoken_ipa, score (0-100), alignment[] }
+         { ipa, target_ipa, spoken_ipa, score (0-100), alignment[],
+           words[]: { word, target_ipa, spoken_ipa, alignment[] } per lyric word }
 
 Setup / deploy: see ml/pronunciation/README.md.
 """
@@ -153,13 +154,36 @@ def _recognise_phones(audio) -> list[str]:
     return [p for p in text.split() if p not in special]
 
 
-def _target_words(text: str) -> list[list[str]]:
-    """Lyric line -> phones per word, via the model's own espeak phonemizer."""
+def _target_words(text: str) -> list[tuple[str, list[str]]]:
+    """Lyric line -> (written word, phones) per word, via the model's own espeak
+    phonemizer. Each whitespace-separated token is phonemized separately (in one
+    batched call) so the written words pair exactly with their phones. A token
+    that espeak splits further (e.g. "oh-oh") stays one word; tokens with no
+    sounds (stray punctuation) are dropped."""
+    from phonemizer.separator import Separator
+
     tok = _load()["processor"].tokenizer
-    raw = tok.phonemize(text, phonemizer_lang=TARGET_VOICE)
+    tokens = text.split()
+    if not tokens:
+        return []
+    # phonemize() (re)initialises the espeak backend for TARGET_VOICE.
+    tok.phonemize(tokens[0], phonemizer_lang=TARGET_VOICE)
+    delim = tok.word_delimiter_token
+    separator = Separator(phone=tok.phone_delimiter_token, word=f"{delim} " if delim else "", syllable="")
+    raw = tok.backend.phonemize(tokens, separator=separator)
     special = _special_tokens()
-    words = [[p for p in w.split() if p not in special] for w in raw.split(tok.word_delimiter_token)]
-    return [w for w in words if w]
+
+    words: list[tuple[str, list[str]]] = []
+    for token, ipa in zip(tokens, raw):
+        phones = [p for p in ipa.strip().split() if p not in special]
+        # Show the word without surrounding punctuation: "¡Vivir!" -> "Vivir".
+        written = token.strip(_EDGE_PUNCT) or token
+        if phones:
+            words.append((written, phones))
+    return words
+
+
+_EDGE_PUNCT = "¡!¿?.,;:()[]{}\"'“”‘’«»…—–-*"
 
 
 # ─── scoring ──────────────────────────────────────────────────────────────────
@@ -252,17 +276,50 @@ def _align(target: list[str], spoken: list[str]) -> tuple[list[dict], float]:
     return ops, d[n][m]
 
 
+def _group_by_word(word_phones: list[list[str]], alignment: list[dict]) -> list[list[dict]]:
+    """Split a flat alignment into one op list per target word.
+
+    Each op that consumes a target phone (equal / sub / delete) belongs to the
+    word that phone came from. Inserted phones have no target, so they stick to
+    the word before them (or the first word, if they come first)."""
+    groups: list[list[dict]] = [[] for _ in word_phones]
+    if not groups:
+        return groups
+    word = 0  # word the next target phone belongs to
+    used = 0  # target phones consumed within that word
+    for op in alignment:
+        if op["op"] == "insert":
+            groups[max(0, min(word if used else word - 1, len(groups) - 1))].append(op)
+            continue
+        while used >= len(word_phones[word]) and word < len(groups) - 1:
+            word, used = word + 1, 0
+        groups[word].append(op)
+        used += 1
+    return groups
+
+
 def _assess(target_text: str, spoken: list[str]) -> dict:
     words = _target_words(target_text)
-    target = [p for w in words for p in w]
+    word_phones = [phones for _, phones in words]
+    target = [p for phones in word_phones for p in phones]
     alignment, cost = _align(target, spoken)
     # Feature-weighted phone error rate -> 0-100 accuracy.
     score = round(max(0.0, 1.0 - cost / len(target)) * 100) if target else 0
     return {
-        "target_ipa": " ".join("".join(w) for w in words),
+        "target_ipa": " ".join("".join(phones) for phones in word_phones),
         "spoken_ipa": "".join(spoken),
         "score": score,
         "alignment": alignment,
+        # Same alignment, regrouped per lyric word for the per-word rows in the app.
+        "words": [
+            {
+                "word": written,
+                "target_ipa": "".join(phones),
+                "spoken_ipa": "".join(op["spoken"] for op in ops if op["spoken"]),
+                "alignment": ops,
+            }
+            for (written, phones), ops in zip(words, _group_by_word(word_phones, alignment))
+        ],
     }
 
 

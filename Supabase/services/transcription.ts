@@ -12,6 +12,17 @@ export interface PhonemeAlignment {
   spoken: string | null;
 }
 
+/** The assessment for one word of the lyric line. */
+export interface WordAssessment {
+  /** The word as written in the lyric. */
+  word: string;
+  /** IPA the word should sound like. */
+  targetIpa: string;
+  /** IPA the user produced for this word (their phones aligned to it). */
+  spokenIpa: string;
+  alignment: PhonemeAlignment[];
+}
+
 export interface PronunciationResult {
   /** IPA the lyric line should sound like (words separated by spaces). */
   targetIpa: string;
@@ -20,6 +31,8 @@ export interface PronunciationResult {
   /** 0–100 feature-weighted accuracy. */
   score: number;
   alignment: PhonemeAlignment[];
+  /** Same alignment grouped per lyric word; empty if the service predates it. */
+  words: WordAssessment[];
 }
 
 // Calls the "transcribe-ipa" Supabase Edge Function, which forwards the clip to
@@ -48,5 +61,13 @@ export async function assessPronunciation(
     spokenIpa: data?.spoken_ipa ?? data?.ipa ?? "",
     score: typeof data?.score === "number" ? data.score : 0,
     alignment: Array.isArray(data?.alignment) ? data.alignment : [],
+    words: Array.isArray(data?.words)
+      ? data.words.map((w: any) => ({
+          word: w.word ?? "",
+          targetIpa: w.target_ipa ?? "",
+          spokenIpa: w.spoken_ipa ?? "",
+          alignment: Array.isArray(w.alignment) ? w.alignment : [],
+        }))
+      : [],
   };
 }

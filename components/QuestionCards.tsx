@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, type StyleProp, type TextStyle } from "react-native";
 import { ActivityIndicator, Button, Card, Text, TextInput } from "react-native-paper";
 import { useAppTheme } from "../constants/theme";
 import { Question } from "../Supabase/services/questions";
@@ -21,6 +21,80 @@ function Explanation({ text }: { text?: string }) {
   );
 }
 
+// Renders text with **…** spans in bold — the target word in a vocab
+// sentence, or the conjugated verb in a pattern example.
+function Emphasized({
+  text,
+  style,
+  variant = "titleMedium",
+}: {
+  text: string;
+  style?: StyleProp<TextStyle>;
+  variant?: "titleMedium" | "bodySmall";
+}) {
+  const parts = text.split(/\*\*(.+?)\*\*/);
+  return (
+    <Text variant={variant} style={style}>
+      {parts.map((part, i) =>
+        i % 2 === 1 ? (
+          <Text key={i} style={styles.emphasis}>
+            {part}
+          </Text>
+        ) : (
+          part
+        )
+      )}
+    </Text>
+  );
+}
+
+// Bold-marked Spanish line with its English translation (if any) beneath.
+// `hideAnswer` blanks out the translation's **…** spans — on a vocab
+// question they're the word's meaning, i.e. the answer.
+function TranslatedLine({ text, translation, hideAnswer }: { text: string; translation?: string; hideAnswer?: boolean }) {
+  const theme = useAppTheme();
+  return (
+    <View>
+      <Emphasized text={text} style={{ color: theme.colors.onSurface }} />
+      {!!translation && (
+        <Emphasized
+          text={hideAnswer ? translation.replace(/\*\*(.+?)\*\*/g, "**____**") : translation}
+          variant="bodySmall"
+          style={[styles.translation, { color: theme.colors.onSurfaceVariant }]}
+        />
+      )}
+    </View>
+  );
+}
+
+// Pattern-recognition examples, shown above the prompt.
+function ExamplesBox({ question }: { question: Question }) {
+  const theme = useAppTheme();
+  if (!question.examples?.length) return null;
+  return (
+    <View style={[styles.contextBox, { backgroundColor: theme.colors.surface }]}>
+      <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+        Spot the pattern
+      </Text>
+      {question.examples.map((ex, i) => (
+        <TranslatedLine key={i} text={ex.text} translation={ex.translation} />
+      ))}
+    </View>
+  );
+}
+
+// The question's Spanish sentence (a vocab word in context, or the sentence
+// with the blank to fill in), shown below the prompt.
+function SentenceBox({ question, hideAnswer }: { question: Question; hideAnswer?: boolean }) {
+  const theme = useAppTheme();
+  if (!question.sentence) return null;
+  return (
+    <View style={[styles.contextBox, { backgroundColor: theme.colors.surface }]}>
+      <TranslatedLine text={question.sentence} translation={question.translation} hideAnswer={hideAnswer} />
+    </View>
+  );
+}
+
 export function MultipleChoiceCard({
   question,
   onAnswered,
@@ -34,9 +108,11 @@ export function MultipleChoiceCard({
   return (
     <Card mode="contained" style={[styles.card, { backgroundColor: theme.colors.surfaceVariant }]}>
       <Card.Content>
+        <ExamplesBox question={question} />
         <Text variant="titleMedium" style={{ color: theme.colors.onSurface, marginBottom: 12 }}>
           {question.prompt}
         </Text>
+        <SentenceBox question={question} hideAnswer={selected == null} />
         <View style={styles.optionsList}>
           {(question.options ?? []).map((option) => {
             const isSelected = selected === option;
@@ -79,20 +155,17 @@ export function MultipleChoiceCard({
 
 // Case/whitespace/accent-insensitive comparison — typing accents is
 // inconvenient on most keyboards, so "esta noche" should match "está noche".
-// Fill-in-the-blank answers must not depend on an accent to be correct (a
-// distinct word an accent away, e.g. tu/tú, should be multiple_choice
-// instead — see data/lessonQuestions.ts), so stripping accents here can't
-// turn a wrong answer into a right one.
-function normalizeAnswer(s: string): string {
-  return s
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(new RegExp("[\\u0300-\\u036f]", "g"), "");
+// Questions where an accent is the whole difference (preterite habló vs
+// present hablo) set accentSensitive, and are compared with accents kept.
+function normalizeAnswer(s: string, keepAccents = false): string {
+  const lower = s.trim().toLowerCase().normalize("NFC");
+  return keepAccents ? lower : lower.normalize("NFD").replace(new RegExp("[\\u0300-\\u036f]", "g"), "");
 }
 
 // Fill-in-the-blank: user types an answer and it's checked against the
-// expected answer (case/whitespace/accent-insensitive).
+// expected answer (case/whitespace-insensitive; accent-insensitive unless
+// the question is accentSensitive). Pattern-recognition questions are
+// fill-in-the-blanks with example sentences shown above the prompt.
 export function FillBlankCard({
   question,
   onAnswered,
@@ -103,7 +176,10 @@ export function FillBlankCard({
   const theme = useAppTheme();
   const [value, setValue] = useState("");
   const [checked, setChecked] = useState(false);
-  const isCorrect = normalizeAnswer(value) === normalizeAnswer(question.answer);
+  const strict = !!question.accentSensitive;
+  const isCorrect = normalizeAnswer(value, strict) === normalizeAnswer(question.answer, strict);
+  // Right letters, wrong (or missing) accent — worth calling out specifically.
+  const accentOnly = strict && !isCorrect && normalizeAnswer(value) === normalizeAnswer(question.answer);
 
   function handleCheck() {
     setChecked(true);
@@ -113,9 +189,11 @@ export function FillBlankCard({
   return (
     <Card mode="contained" style={[styles.card, { backgroundColor: theme.colors.surfaceVariant }]}>
       <Card.Content>
+        <ExamplesBox question={question} />
         <Text variant="titleMedium" style={{ color: theme.colors.onSurface, marginBottom: 12 }}>
           {question.prompt}
         </Text>
+        <SentenceBox question={question} />
         <TextInput
           mode="outlined"
           value={value}
@@ -127,10 +205,19 @@ export function FillBlankCard({
           activeOutlineColor={checked ? (isCorrect ? theme.colors.success : theme.colors.error) : undefined}
           style={styles.input}
         />
+        {strict && !checked && /[áéíóú]/i.test(question.answer) && (
+          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 10 }}>
+            Accents count here. Hold a letter on your keyboard to add one.
+          </Text>
+        )}
         {checked ? (
           <>
             <Text variant="bodyMedium" style={{ color: isCorrect ? theme.colors.success : theme.colors.onSurface, fontStyle: "italic" }}>
-              {isCorrect ? "¡Correcto!" : `Correct answer: ${question.answer}`}
+              {isCorrect
+                ? "¡Correcto!"
+                : accentOnly
+                ? `Almost — check the accent: ${question.answer}`
+                : `Correct answer: ${question.answer}`}
             </Text>
             <Explanation text={question.explanation} />
           </>
@@ -358,4 +445,7 @@ const styles = StyleSheet.create({
   actionBtn: { alignSelf: "flex-start" },
   explanation: { flexDirection: "row", gap: 8, borderRadius: 12, padding: 12, marginTop: 12 },
   explanationText: { flex: 1 },
+  contextBox: { borderRadius: 12, padding: 12, marginBottom: 12, gap: 10 },
+  translation: { marginTop: 2, fontStyle: "italic" },
+  emphasis: { fontWeight: "800" },
 });

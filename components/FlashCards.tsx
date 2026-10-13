@@ -4,6 +4,10 @@ import { Animated, Pressable, StyleSheet, Text as RNText, View } from "react-nat
 import { Text } from "react-native-paper";
 import { useAppTheme, type AppTheme } from "../constants/theme";
 
+/** Card color for level decks (app/levels/[levelName]/flashcards.tsx), in
+ *  the same pastel family as song covers. */
+export const LEVEL_DECK_COLOR = "#C9BFE8";
+
 /** Flip-card vocabulary carousel — shared by the song player page and the
  *  dedicated Flashcards page reached from the song hub. */
 export function FlashCardCarousel({ entries, color }: { entries: [string, string][]; color: string }) {

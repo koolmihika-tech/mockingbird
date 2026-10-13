@@ -1,10 +1,11 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { Button, Card, Surface, Text, TouchableRipple } from "react-native-paper";
+import { ActivityIndicator, Surface, Text, TouchableRipple } from "react-native-paper";
 import { AppScaffold } from "../../components/AppScaffold";
+import { LevelCarousel } from "../../components/LevelCarousel";
 import { useAppTheme } from "../../constants/theme";
-import { SONGS } from "../../data/songs";
+import { useLevelProgress } from "../../hooks/useLevelProgress";
 
 type Icon = keyof typeof MaterialCommunityIcons.glyphMap;
 type Tone = "primary" | "tertiary" | "secondary" | "streak";
@@ -17,6 +18,7 @@ const DECKS: { label: string; sub: string; route: string; icon: Icon; tone: Tone
 export default function PracticeScreen() {
   const router = useRouter();
   const theme = useAppTheme();
+  const { levels, loading, error, userLevel, statusOf, isLevelLocked } = useLevelProgress();
 
   const toneColor = (t: Tone) =>
     t === "primary"
@@ -38,28 +40,25 @@ export default function PracticeScreen() {
   return (
     <AppScaffold title="Practice">
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Today's practice hero */}
-        <Card mode="contained" style={[styles.hero, { backgroundColor: theme.colors.primaryContainer }]}>
-          <Card.Content>
-            <View style={styles.heroRow}>
-              <View style={{ flex: 1 }}>
-                <Text variant="labelLarge" style={{ color: theme.colors.onPrimaryContainer, opacity: 0.8 }}>
-                  TODAY&apos;S PRACTICE
-                </Text>
-                <Text variant="titleLarge" style={{ color: theme.colors.onPrimaryContainer, marginTop: 4 }}>
-                  Grammar lessons
-                </Text>
-                <Text variant="bodyMedium" style={{ color: theme.colors.onPrimaryContainer, opacity: 0.85, marginTop: 4 }}>
-                  Build basic skills to help you learn.
-                </Text>
-                <Button mode="contained-tonal" icon="play" onPress={() => router.push("/lessons")} style={styles.heroBtn}>
-                  Start
-                </Button>
-              </View>
-              <MaterialCommunityIcons name="cards-playing-outline" size={60} color={theme.colors.onPrimaryContainer} style={{ opacity: 0.85 }} />
-            </View>
-          </Card.Content>
-        </Card>
+        {/* Flashcards: one deck per level, compiled from its lessons' vocab */}
+        <Text variant="titleMedium" style={[styles.sectionLabel, styles.firstSectionLabel, { color: theme.colors.onBackground }]}>
+          Flashcards
+        </Text>
+        {loading ? (
+          <ActivityIndicator color={theme.colors.primary} style={styles.spinner} />
+        ) : error ? (
+          <Text variant="bodyMedium" style={[styles.errorText, { color: theme.colors.error }]}>
+            {error}
+          </Text>
+        ) : (
+          <LevelCarousel
+            levels={levels}
+            statusOf={statusOf}
+            isLevelLocked={isLevelLocked}
+            initialLevelName={userLevel?.level_name}
+            onPressCard={(level) => router.push(`/levels/${level.levelName}/flashcards` as any)}
+          />
+        )}
 
         {/* Decks */}
         <Text variant="titleMedium" style={[styles.sectionLabel, { color: theme.colors.onBackground }]}>
@@ -88,30 +87,6 @@ export default function PracticeScreen() {
             </Surface>
           );
         })}
-
-        {/* Flashcards by song */}
-        <Text variant="titleMedium" style={[styles.sectionLabel, { color: theme.colors.onBackground }]}>
-          Flashcards by song
-        </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carouselContent}>
-          {SONGS.filter((s) => !s.displayName).map((song) => (
-            <TouchableRipple
-              key={song.id}
-              onPress={() => router.push(`/songs/${song.id}/flashcards` as any)}
-              style={styles.songTile}
-              borderless
-            >
-              <View style={{ alignItems: "center" }}>
-                <Surface style={[styles.songCover, { backgroundColor: song.coverColor }]} elevation={1}>
-                  <MaterialCommunityIcons name="cards-outline" size={30} color="#3B2A1F" />
-                </Surface>
-                <Text variant="labelMedium" numberOfLines={1} style={[styles.songTileName, { color: theme.colors.onBackground }]}>
-                  {song.name}
-                </Text>
-              </View>
-            </TouchableRipple>
-          ))}
-        </ScrollView>
       </ScrollView>
     </AppScaffold>
   );
@@ -119,15 +94,11 @@ export default function PracticeScreen() {
 
 const styles = StyleSheet.create({
   container: { paddingTop: 8, paddingBottom: 28 },
-  hero: { marginHorizontal: 16, borderRadius: 24 },
-  heroRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  heroBtn: { marginTop: 16, alignSelf: "flex-start" },
   sectionLabel: { marginHorizontal: 20, marginTop: 26, marginBottom: 12 },
+  firstSectionLabel: { marginTop: 12 },
+  spinner: { marginVertical: 24 },
+  errorText: { textAlign: "center", marginVertical: 24 },
   deck: { marginHorizontal: 16, borderRadius: 20, marginBottom: 12 },
   deckRipple: { borderRadius: 20 },
   deckInner: { flexDirection: "row", alignItems: "center", padding: 16, gap: 14 },
-  carouselContent: { paddingHorizontal: 20, gap: 16 },
-  songTile: { width: 100, borderRadius: 20 },
-  songCover: { width: 92, height: 92, borderRadius: 20, alignItems: "center", justifyContent: "center", marginBottom: 6 },
-  songTileName: { textAlign: "center", width: 92 },
 });

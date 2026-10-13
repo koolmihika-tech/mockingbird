@@ -429,8 +429,17 @@ const makeStyles = (theme: AppTheme) =>
     micButtonDisabled: { backgroundColor: theme.colors.surfaceVariant },
     micLabel: { color: theme.colors.onSurfaceVariant, fontWeight: "600" },
     recordError: { color: theme.colors.error, textAlign: "center", marginTop: 8 },
-    recordActions: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 18 },
-    recordAction: { flexDirection: "row", alignItems: "center", gap: 6 },
+    recordActions: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 12 },
+    recordAction: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      borderWidth: 1.5,
+      borderColor: theme.colors.primary,
+      borderRadius: 999,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+    },
 
     accuracyBox: {
       width: "100%",

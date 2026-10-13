@@ -15,6 +15,21 @@ export interface Question {
   // Required on static lesson questions; the edge function asks Gemini for
   // one too, but it's optional here in case a response omits it.
   explanation?: string;
+  // Static lesson-topic extras (data/lessonQuestions.ts). Text inside **…**
+  // is rendered bold.
+  // The Spanish sentence the question is about: for vocab, a sentence using
+  // targetWord; for fill_blank, the sentence with the ____ to fill in.
+  sentence?: string;
+  // English translation of `sentence`, shown beneath it. On a vocab
+  // (multiple_choice) question the **…** span is the target word's meaning
+  // and is blanked out until the learner answers.
+  translation?: string;
+  // Pattern recognition: example sentences sharing one conjugation, shown
+  // above a fill_blank prompt asking for the same form of a new verb.
+  examples?: { text: string; translation?: string }[];
+  // fill_blank only: accents count toward the answer — needed where an
+  // accent is the whole difference (preterite habló vs present hablo).
+  accentSensitive?: boolean;
 }
 
 // Calls the "generate-questions" Supabase Edge Function, which holds the
