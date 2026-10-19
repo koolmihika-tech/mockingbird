@@ -105,6 +105,10 @@ export async function signIn(email: string, password: string) {
 //Signing in / up with Google
 export async function signInWithGoogle() {
   const redirectTo = AuthSession.makeRedirectUri({ scheme: "mockingbird" });
+  // Only a dev/standalone build yields mockingbird://. Expo Go yields exp://<ip>:8081
+  // and web yields the page origin; each must be allow-listed in Supabase Auth, or
+  // Supabase falls back to the Site URL and the auth browser never returns here.
+  console.log("Google OAuth redirectTo:", redirectTo);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",

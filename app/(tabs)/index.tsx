@@ -13,7 +13,7 @@ import { getLoginStreak } from "../../Supabase/services/streak";
 export default function Home() {
   const router = useRouter();
   const theme = useAppTheme();
-  const { user, login, signup, logout, isLoading } = useSupabaseAuth();
+  const { user, login, signup, loginWithGoogle, logout, isLoading } = useSupabaseAuth();
   // The auth modal has two tabs — "login" and "signup" — the user picks up front.
   // `notice` carries the in-modal message (errors, or a nudge to the other tab).
   const [modalOpen, setModalOpen] = useState(false);
@@ -82,6 +82,14 @@ export default function Home() {
         setNotice(res.error ?? "Sign up failed");
       }
     }
+  }
+
+  // Google covers both log in and sign up. Failures already raise a native alert
+  // in the service, and a cancelled browser sheet just leaves the modal open.
+  async function handleGoogle() {
+    setNotice(null);
+    const res = await loginWithGoogle();
+    if (res.ok) closeModal();
   }
 
   const displayName = user?.user_metadata?.display_name ?? null;
@@ -274,6 +282,22 @@ export default function Home() {
             <Button mode="contained" onPress={handleSubmit} loading={isLoading} disabled={isLoading} style={styles.modalBtn}>
               {mode === "signup" ? "Create account" : "Log in"}
             </Button>
+            <View style={styles.dividerRow}>
+              <View style={[styles.dividerLine, { backgroundColor: theme.colors.outlineVariant }]} />
+              <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+                or
+              </Text>
+              <View style={[styles.dividerLine, { backgroundColor: theme.colors.outlineVariant }]} />
+            </View>
+            <Button
+              mode="outlined"
+              icon="google"
+              onPress={handleGoogle}
+              disabled={isLoading}
+              style={styles.modalBtn}
+            >
+              {mode === "signup" ? "Sign up with Google" : "Log in with Google"}
+            </Button>
             <Button mode="text" onPress={closeModal}>
               Cancel
             </Button>
@@ -325,4 +349,6 @@ const styles = StyleSheet.create({
   tab: { flex: 1, paddingVertical: 10, borderBottomWidth: 2 },
   input: { marginBottom: 12 },
   modalBtn: { marginBottom: 10 },
+  dividerRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 },
+  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth },
 });
